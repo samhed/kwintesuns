@@ -25,27 +25,22 @@ h1 {
 /***********************************************************
 *                          MenuBar
 ***********************************************************/
-.MenuBar
-{
+.MenuBar {
+	border						:	1px solid #666;
     margin                      :   0 auto;
-    background-color            :   #eee;
-    padding                     :   3px;
 }
-.MenuBar table
-{
+.MenuBar table {
     border-collapse             :   separate;
-    border                      :   1px solid #eee;
-    background-color            :   #ddd;
+    border                      :   0px solid #eee;
+    padding						:	0;
 }
-.MenuBar .gwt-MenuItem
-{
+.MenuBar .gwt-MenuItem {
     display						:	block;
     float						:	left;
-    margin						:	0 7px 0 0;
-    background-color			:	#f5f5f5;
-    border						:	1px solid #dedede;
-    border-top					:	1px solid #eee;
-    border-left					:	1px solid #eee;
+    margin						:	0 3px 0 3px;
+    border						:	1px solid #cecece;
+    border-top					:	1px solid #d0d0d0;
+    border-left					:	1px solid #d0d0d0;
 
     font-family					:	"Lucida Grande", Tahoma, Arial, Verdana, sans-serif;
     font-size					:	12px;
@@ -55,18 +50,19 @@ h1 {
     color						:	#565656;
     cursor						:	hand;
     cursor						:	pointer;
-    padding						:	5px 10px 6px 7px; /* Links */
+    padding						:	5px 10px 6px 7px;
 }
-.MenuBar .gwt-MenuItem-selected
-{
+.MenuBar .gwt-MenuItem-selected {
     background-color			:	#6299c5;
     border						:	1px solid #6299c5;
     color						:	#fff;
 }
 
 .headerStyle {
-	font-size: 20pt;
+	border: 5px solid teal;
+	font-size: 24pt;
 	font-weight: bold;
+	font-family: Arial;
 	color: #FAFAFA;
 }
 
