@@ -12,11 +12,9 @@ public class Kwintesuns implements EntryPoint {
 
 	private final VerticalPanel mainPanel = new VerticalPanel();
 	private final FlexTable contentGrid = new FlexTable();
-	private MenuPanel menuPanel = new MenuPanel();
+	private TopPanel topPanel = new TopPanel();
 	private PostPanel postPanel = new PostPanel();
 	private CommentPanel commentPanel = new CommentPanel();
-	//private HorizontalPanel topPanel = new HorizontalPanel();
-	//private HorizontalPanel contentPanel = new HorizontalPanel();
 
 	/**
 	 * This is the entry point method.
@@ -32,20 +30,18 @@ public class Kwintesuns implements EntryPoint {
 		contentGrid.setWidget(0, 0, postPanel);
 		contentGrid.setWidget(0, 1, commentPanel);
 		
-		mainPanel.setHeight("70px");
+		mainPanel.setHeight("100%");
 		mainPanel.setWidth("100%");
 		
-		mainPanel.add(menuPanel);
+		mainPanel.add(topPanel);
 		mainPanel.add(contentGrid);
 		
 		RootLayoutPanel.get().setStyleName("bgStyle");
 		RootLayoutPanel.get().add(mainPanel);
-		//RootPanel.get("Kwintesuns").add(topPanel);
-		//RootPanel.get("Kwintesuns").add(contentPanel);
 		
 	}
 }
-	
+
 	/**
 	 * The message displayed to the user when the server cannot be reached or
 	 * returns an error.

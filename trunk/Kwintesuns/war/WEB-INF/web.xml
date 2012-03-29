@@ -6,15 +6,26 @@
          xmlns="http://java.sun.com/xml/ns/javaee">
 
   <!-- Servlets -->
-  <!-- <servlet> -->
-  <!--   <servlet-name>greetServlet</servlet-name> -->
-  <!--   <servlet-class>ida.liu.se.kwintesuns.server.GreetingServiceImpl</servlet-class> -->
-  <!-- </servlet> -->
   
-  <!-- <servlet-mapping> -->
-  <!--   <servlet-name>greetServlet</servlet-name> -->
-  <!--   <url-pattern>/kwintesuns/greet</url-pattern> -->
-  <!-- </servlet-mapping> -->
+  <servlet>
+    <servlet-name>OpenIDServlet</servlet-name>
+    <servlet-class>ida.liu.se.kwintesuns.server.OpenIDServlet</servlet-class>
+  </servlet>
+  
+  <servlet>
+    <servlet-name>UserServiceImpl</servlet-name>
+    <servlet-class>ida.liu.se.kwintesuns.server.UserServiceImpl</servlet-class>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>OpenIDServlet</servlet-name>
+    <url-pattern>/_ah/OpenID</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>UserServiceImpl</servlet-name>
+    <url-pattern>/kwintesuns/userservice</url-pattern>
+  </servlet-mapping>
   
   <!-- Default page to serve -->
   <welcome-file-list>
