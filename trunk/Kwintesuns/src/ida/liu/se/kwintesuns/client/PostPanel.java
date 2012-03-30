@@ -1,20 +1,23 @@
 package ida.liu.se.kwintesuns.client;
 
-import com.google.gwt.user.client.ui.HasVerticalAlignment;
-import com.google.gwt.user.client.ui.TextBox;
-import com.google.gwt.user.client.ui.VerticalPanel;
+import com.google.gwt.user.client.ui.ScrollPanel;
 
-public class PostPanel extends VerticalPanel{
+public class PostPanel extends ScrollPanel{
 	
 	public PostPanel() {
-
-		final TextBox t2 = new TextBox();
-		t2.setText("Post");
-
-		setVerticalAlignment(HasVerticalAlignment.ALIGN_TOP);
 		setHeight("100%");
 		setWidth("100%");
-		add(t2);
+	}
+	
+	public void addPost(String t, String d, 
+			String p, String txt) {
+		Post post = new Post(t, d, p, txt);
+		//TODO: add post to database
+	}
+	
+	public void refresh() {
+		//TODO: check database for posts
+		// put posts in the panel
 	}
 
 }
