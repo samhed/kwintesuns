@@ -1,0 +1,2 @@
+serviceClass: ida.liu.se.kwintesuns.client.MyUserService
+path: C21E1D045B1087E8FAC3CD54E51570C4.gwt.rpc

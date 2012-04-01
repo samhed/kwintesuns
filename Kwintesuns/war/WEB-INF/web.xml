@@ -14,7 +14,7 @@
   
   <servlet>
     <servlet-name>UserServiceImpl</servlet-name>
-    <servlet-class>ida.liu.se.kwintesuns.server.UserServiceImpl</servlet-class>
+    <servlet-class>ida.liu.se.kwintesuns.server.MyUserServiceImpl</servlet-class>
   </servlet>
   
   <servlet-mapping>
@@ -24,7 +24,7 @@
   
   <servlet-mapping>
     <servlet-name>UserServiceImpl</servlet-name>
-    <url-pattern>/kwintesuns/userservice</url-pattern>
+    <url-pattern>/kwintesuns/myuserservice</url-pattern>
   </servlet-mapping>
   
   <!-- Default page to serve -->

@@ -2,7 +2,9 @@ package ida.liu.se.kwintesuns.server;
 
 import java.io.IOException;
 import java.util.HashMap;
+//import java.util.HashSet;
 import java.util.Map;
+//import java.util.Set;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -30,13 +32,18 @@ public class OpenIDServlet extends HttpServlet {
             throws IOException {
         UserService userService = UserServiceFactory.getUserService();
         User user = userService.getCurrentUser(); // or req.getUserPrincipal()
+        /*@SuppressWarnings({ "rawtypes", "unchecked" })
+		Set<String> attributes = new HashSet();	
+        String providerUrl = openIdProviders.get("Google");*/
 
         resp.setContentType("text/html");
 
-        if (user != null) {            
+        if (user != null) {
             resp.sendRedirect(userService.createLogoutURL("/"));
         } else {
-            resp.sendRedirect(userService.createLoginURL("/"));
+        	resp.sendRedirect(userService.createLoginURL("/"));
+           // resp.sendRedirect(userService.createLoginURL(req
+           //         .getRequestURI(), null, providerUrl, attributes));
         }
     }
 }
