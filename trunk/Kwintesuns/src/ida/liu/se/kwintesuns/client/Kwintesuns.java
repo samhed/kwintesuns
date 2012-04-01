@@ -1,7 +1,16 @@
 package ida.liu.se.kwintesuns.client;
 
+import java.util.ArrayList;
+
 import com.google.gwt.core.client.EntryPoint;
+import com.google.gwt.core.client.GWT;
+import com.google.gwt.user.client.Timer;
+import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.FlexTable;
+import com.google.gwt.user.client.ui.HasHorizontalAlignment;
+import com.google.gwt.user.client.ui.HasVerticalAlignment;
+import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RootLayoutPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
@@ -9,20 +18,26 @@ import com.google.gwt.user.client.ui.VerticalPanel;
  * Entry point classes define <code>onModuleLoad()</code>.
  */
 public class Kwintesuns implements EntryPoint {
-
+	
+    private final String baseUrl = Window.Location.getHref();
+	private Label loggedInLabel = new Label();
+	private String loginButtonText;
+	private FlexTable postsTable = new FlexTable();
 	private final VerticalPanel mainPanel = new VerticalPanel();
 	private final FlexTable contentGrid = new FlexTable();
-	private TopPanel topPanel = new TopPanel();
-	private PostPanel postPanel = new PostPanel();
+	private TopPanel topPanel = new TopPanel(loggedInLabel, loginButtonText, baseUrl, postsTable);
+	private PostPanel postPanel = new PostPanel(postsTable);
 	private CommentPanel commentPanel = new CommentPanel();
 
 	/**
 	 * This is the entry point method.
 	 */
 	public void onModuleLoad() {
-
+		
 		contentGrid.setSize("100%", "100%");
-		contentGrid.setCellPadding(0);
+		contentGrid.getFlexCellFormatter().setAlignment(0, 0, 
+				HasHorizontalAlignment.ALIGN_LEFT, 
+				HasVerticalAlignment.ALIGN_TOP);
 		contentGrid.setCellSpacing(0);
 		contentGrid.getColumnFormatter().setWidth(0, "50%");
 		contentGrid.getColumnFormatter().setWidth(1, "50%");
@@ -30,8 +45,9 @@ public class Kwintesuns implements EntryPoint {
 		contentGrid.setWidget(0, 0, postPanel);
 		contentGrid.setWidget(0, 1, commentPanel);
 		
-		mainPanel.setHeight("100%");
 		mainPanel.setWidth("100%");
+		//mainPanel.setHeight("200px");
+		mainPanel.setVerticalAlignment(HasVerticalAlignment.ALIGN_TOP);
 		
 		mainPanel.add(topPanel);
 		mainPanel.add(contentGrid);
@@ -39,6 +55,51 @@ public class Kwintesuns implements EntryPoint {
 		RootLayoutPanel.get().setStyleName("bgStyle");
 		RootLayoutPanel.get().add(mainPanel);
 		
+		initPosts();
+
+		Timer t = new Timer(){
+            public void run() {
+                postPanel.refresh();
+                topPanel.refresh();
+            }
+        };
+        // schedule the timer to fire every second
+        t.scheduleRepeating(1000);
+	}
+	
+	private void initPosts() {
+		MyUserServiceAsync async = GWT.create(MyUserService.class);
+		async.getAllPosts(new AsyncCallback<ArrayList<Post>>() {
+				@Override
+				public void onFailure(Throwable caught) {
+					Window.alert("MyUserService RPC call failed \n"
+						+ caught);
+				}
+				public void onSuccess(ArrayList<Post> result) {
+					int row = 0;
+		            postsTable.removeAllRows();
+		            postsTable.setText(0, 0, "Type");
+		            postsTable.setText(0, 1, "Date");
+		            postsTable.setText(0, 2, "Title");
+		            postsTable.setText(0, 3, "Poster");
+		            postsTable.setText(0, 4, "Text");
+		            //loop the array list and user getters to add 
+		            //records to the table
+		            for (Post post : result) {
+		              row = postsTable.getRowCount();
+		              postsTable.setText(row, 0,
+		            		  post.getType());
+		              postsTable.setText(row, 1,
+		            		  post.getDate().toString());
+		              postsTable.setText(row, 2,
+		            		  post.getTitle());
+		              postsTable.setText(row, 3,
+		            		  post.getPoster());
+		              postsTable.setText(row, 4,
+		            		  post.getText());
+		            }
+				}
+				});	
 	}
 }
 
