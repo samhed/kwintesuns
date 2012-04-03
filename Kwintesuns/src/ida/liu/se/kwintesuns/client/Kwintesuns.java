@@ -15,7 +15,7 @@ public class Kwintesuns implements EntryPoint {
 	
 	private final VerticalPanel mainPanel = new VerticalPanel();
 	private final FlexTable contentGrid = new FlexTable();
-	private PostsPanel postsPanel = new PostsPanel();
+	public PostsPanel postsPanel = new PostsPanel();
 	private TopPanel topPanel = new TopPanel(postsPanel);
 	private CommentPanel commentPanel = new CommentPanel();
 
@@ -36,7 +36,6 @@ public class Kwintesuns implements EntryPoint {
 		contentGrid.setWidget(0, 1, commentPanel);
 		
 		mainPanel.setWidth("100%");
-		//mainPanel.setHeight("200px");
 		mainPanel.setVerticalAlignment(HasVerticalAlignment.ALIGN_TOP);
 		
 		mainPanel.add(topPanel);

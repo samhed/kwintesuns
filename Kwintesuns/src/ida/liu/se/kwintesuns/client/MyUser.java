@@ -10,7 +10,7 @@ import com.google.gwt.user.client.rpc.IsSerializable;
 @Entity
 public class MyUser implements IsSerializable {
 	
-	@Id
+	@Id 	
 	private String id;
 	private ArrayList<String> friendList;
 	

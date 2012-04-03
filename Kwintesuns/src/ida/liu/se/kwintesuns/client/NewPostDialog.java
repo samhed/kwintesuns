@@ -1,7 +1,10 @@
 package ida.liu.se.kwintesuns.client;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.Label;
@@ -24,6 +27,7 @@ public class NewPostDialog extends DialogBox {
 	private Label descriptionLabel = new Label("Description:");
 	private Label pictureLabel = new Label("Picture:");
 	private Label textLabel = new Label("Text:");
+	private final MyUserServiceAsync async = GWT.create(MyUserService.class);
 	
 	public NewPostDialog() {
 
@@ -57,6 +61,29 @@ public class NewPostDialog extends DialogBox {
 		closeButton.addClickHandler(new ClickHandler() {
 			public void onClick(ClickEvent event) {
 				hide();
+			}
+		});
+		
+		sendButton.setFocus(true);
+		sendButton.addClickHandler(new ClickHandler() {
+			public void onClick(ClickEvent event) {
+				Post p = new Post(
+					getTitleBox().getText(),
+					getTypeBox().getText(),
+					getDescriptionBox().getText(),
+					getPictureBox().getText(),
+					getTextBox().getText());
+				async.storePost(p, new AsyncCallback<Void>() {
+				    @Override
+				    public void onFailure(Throwable caught) {
+				        Window.alert(
+				        		"newPost().storePost failed \n" + caught);
+				    }
+				    @Override
+				    public void onSuccess(Void result) {
+				    	hide();
+				    }
+				});
 			}
 		});
 	}

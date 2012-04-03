@@ -42,7 +42,7 @@ MyUserService {
 	private MyUser makeMyUser(User user) {
 		if (userService.isUserLoggedIn()) {
 			MyUser myUser = new MyUser(user.getNickname());
-			if(userIsInDb(user))
+			if(userIsNotInDb(user))
 				ofy.put(myUser);
 			return myUser;
 		} else {
@@ -50,13 +50,13 @@ MyUserService {
 		}
 	}
 	
-	private boolean userIsInDb(User user) {
+	private boolean userIsNotInDb(User user) {
 		try {
 			ofy.get(MyUser.class, user.getFederatedIdentity());
 		} catch (Exception e) {
-			return false; //user not found
+			return true; //user not found
 		}
-		return true;
+		return false;
 	}
 	
 	public void storePost(Post post) {
