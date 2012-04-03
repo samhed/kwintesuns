@@ -18,32 +18,32 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 
 public class TopPanel extends VerticalPanel {
 	
+	private PostsPanel postsPanel;
 	private Label header = new Label();
-	private Label loggedInLabel;
+	private Label loggedInLabel = new Label();
 	private MenuBar postMenu = new MenuBar();
 	private MenuBar filterMenu = new MenuBar();
 	private MenuBar loginMenu = new MenuBar();
+	private String baseUrl;
 	private MenuItem loginButton;
 	private MenuItem friendsButton;
 	private String loginButtonText;
 	private MyUser user;
-	private ArrayList<String> filter = new ArrayList<String>();
 	private FlexTable menuGrid = new FlexTable();
 	private FlexTable headerGrid = new FlexTable();
-	private FlexTable postsTable;
 	private final MyUserServiceAsync async = GWT.create(MyUserService.class);
 	
-	public TopPanel(Label lIL, String lBT, final String baseUrl, FlexTable pT) {
+	public TopPanel(PostsPanel postsPanel) {
 		
-		this.postsTable = pT;
-		this.loggedInLabel = lIL;
-		this.loginButtonText = lBT;
+		this.postsPanel = postsPanel;
 				
 		header.setText("KWINTESUNS");
 		header.setStyleName("headerStyle");
 		header.addClickHandler(new ClickHandler() {
 		    @Override
 		    public void onClick (ClickEvent event){
+		    	if ((baseUrl == "") || (baseUrl == null))
+			    	baseUrl = Window.Location.getHref();
 				Window.Location.replace(baseUrl);
 		    }
 		});
@@ -61,6 +61,7 @@ public class TopPanel extends VerticalPanel {
 		filterMenu.addItem("News", showNews);
 		filterMenu.addItem("Thoughts", showThoughts);
         friendsButton = filterMenu.addItem("Friends", showFriends);
+        friendsButton.setVisible(false);
 
 		loginMenu.addStyleName("MenuBar");
 		if ((loginButtonText == "") || (loginButtonText == null))
@@ -92,13 +93,17 @@ public class TopPanel extends VerticalPanel {
 		setHeight("90px");
 		setWidth("100%");
 	}
-	
-	public void refresh() {
+
+	//update loggedInLabel, loginButton & friendsButton
+	public void refresh() {		
 		async.getCurrentMyUser(new AsyncCallback<MyUser>() {
 		    @Override
 		    public void onFailure(Throwable caught) {
-		        //Window.alert("LoginWidget RPC throwable\n" + caught);
-	            loggedInLabel.setText("logging in...");
+		        Window.alert("refresh().getCurrentMyUser failed\n" + caught);
+		        if ((loggedInLabel.getText() == null) || (loggedInLabel.getText() == ""))
+		            loggedInLabel.setText("logging in...");
+		        else
+			        loggedInLabel.setText("logging out...");
 		    }
 		    @Override
 		    public void onSuccess(MyUser result) {
@@ -118,110 +123,38 @@ public class TopPanel extends VerticalPanel {
 		});
 	}
 	
+	private void applyTypeFilter(String filter) {
+		ArrayList<String> filterArray = new ArrayList<String>();
+		filterArray.add(filter);
+		postsPanel.showPostList("type", filterArray);
+	}
+	
 	private final Command newPost = new Command() {
 		@Override
-		public void execute() {
-			async.storePost(new Post(
-					"hej", "video", "first", "picture", 
-					"detta är den första posten"),
-					new AsyncCallback<Void>() {
-				    @Override
-				    public void onFailure(Throwable caught) {
-				        Window.alert(
-				        		"Store Post failed \n" + caught);
-				    }
-				    @Override
-				    public void onSuccess(Void result) {
-				    	//TODO: hide newPost popup
-				    }
-				});
-		}
+		public void execute() {postsPanel.newPost();}
 	};	
 	private final Command showVideos = new Command() {
 		@Override
-		public void execute() {
-			filter.clear();
-			filter.add("videos");
-			makePostList("type");
-		}
+		public void execute() {applyTypeFilter("video");}
 	};
 	private final Command showPictures = new Command() {
 		@Override
-		public void execute() {
-			filter.clear();
-			filter.add("pictures");
-			makePostList("type");
-		}
+		public void execute() {applyTypeFilter("picture");}
 	};
 	private final Command showNews = new Command() {
 		@Override
-		public void execute() {
-			filter.clear();
-			filter.add("news");
-			makePostList("type");
-		}
+		public void execute() {applyTypeFilter("news");}
 	};
 	private final Command showThoughts = new Command() {
 		@Override
-		public void execute() {
-			filter.clear();
-			filter.add("thoughts");
-			makePostList("type");
-		}
-	};
+		public void execute() {applyTypeFilter("thought");}
+	};	
 	private final Command showFriends = new Command() {
 		@Override
-		public void execute() {
-			filter = user.getFriendList();
-			makePostList("poster");
-		}
+		public void execute() {postsPanel.showPostList("poster", user.getFriendList());}
 	};
 	private final Command login = new Command() {
 		@Override
-		public void execute() {
-			Window.Location.replace("/_ah/OpenID");
-		}
+		public void execute() {Window.Location.replace("/_ah/OpenID");}
 	};
-	
-	private void makePostList(String filterBy) {
-		async.fetchPosts(filterBy, filter,
-            new AsyncCallback<ArrayList<Post>>() {
-		        @Override
-		        public void onFailure(Throwable caught) {
-		      	  Window.alert("Fetch Posts failed \n"
-		                  + caught);
-		        }
-		        public void onSuccess(ArrayList<Post> result) {
-		        	int row = 0;
-		            postsTable.removeAllRows();
-		            postsTable.setText(0, 0, "Type");
-		            postsTable.setText(0, 1, "Date");
-		            postsTable.setText(0, 2, "Title");
-		            postsTable.setText(0, 3, "Poster");
-		            postsTable.setText(0, 4, "Text");
-		            //loop the array list and user getters to add 
-		            //records to the table
-		            for (Post post : result) {
-		              row = postsTable.getRowCount();
-		              postsTable.setText(row, 0,
-		            		  post.getType());
-		              postsTable.setText(row, 1,
-		            		  post.getDate().toString());
-		              postsTable.setText(row, 2,
-		            		  post.getTitle());
-		              postsTable.setText(row, 3,
-		            		  post.getPoster());
-		              postsTable.setText(row, 4,
-		            		  post.getText());
-		            }
-		        }
-		      });        
-	}
 }
-
-/*
-LoginDialog loginDialog = new LoginDialog();
-loginDialog.getServerResponseLabel().setHTML("hej");
-loginDialog.center();
-loginDialog.getCloseButton().setFocus(true);
-*/

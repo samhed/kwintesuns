@@ -32,8 +32,6 @@ MyUserService {
 	}
 	
 	public MyUser getCurrentMyUser() {
-	//public String getCurrentMyUser() {
-		
         User user = userService.getCurrentUser(); // or req.getUserPrincipal()
         if (user != null)
     		return makeMyUser(user);
@@ -41,11 +39,10 @@ MyUserService {
         	return null;
 	}
 		
-	private MyUser makeMyUser(User user) {		
-        
+	private MyUser makeMyUser(User user) {
 		if (userService.isUserLoggedIn()) {
 			MyUser myUser = new MyUser(user.getNickname());
-			//if(userIsInDb(user))
+			if(userIsInDb(user))
 				ofy.put(myUser);
 			return myUser;
 		} else {
@@ -84,20 +81,22 @@ MyUserService {
 			posts.add(p);
 		}
 		
-		return posts;		
+		return posts;
 	}
 	
 	public ArrayList<Post> fetchPosts(String filterBy, ArrayList<String> filter) {
 		
 		Query<Post> q = null;
 		ArrayList<Post> posts = new ArrayList<Post>();
-		for (int i = 0; i < filter.size(); i++) {
-			q = ofy.query(Post.class).filter(filterBy, filter.get(i)).order("date");			
-			//Loop the query results and add to the array
-			for (Post fetched : q) 
-				posts.add(fetched);
+		try {
+			for (int i = 0; i < filter.size(); i++) {
+					q = ofy.query(Post.class).filter(filterBy, filter.get(i)).order("date");
+					//Loop the query results and add to the array
+					for (Post fetched : q)
+						posts.add(fetched);
+			}
+		} catch (Exception e) {
 		}
-		
 		return posts;
 	}
 }
