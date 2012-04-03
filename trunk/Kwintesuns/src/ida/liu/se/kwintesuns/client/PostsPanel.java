@@ -3,11 +3,8 @@ package ida.liu.se.kwintesuns.client;
 import java.util.ArrayList;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.ScrollPanel;
 
@@ -82,29 +79,6 @@ public class PostsPanel extends ScrollPanel{
 	public void newPost() {
 		newPostDialog.show();
 		newPostDialog.center();
-		Button sB = newPostDialog.getSendButton();
-		sB.setFocus(true);
-		sB.addClickHandler(new ClickHandler() {
-			public void onClick(ClickEvent event) {
-				Post p = new Post(
-					newPostDialog.getTitleBox().getText(),
-					newPostDialog.getTypeBox().getText(),
-					newPostDialog.getDescriptionBox().getText(),
-					newPostDialog.getPictureBox().getText(),
-					newPostDialog.getTextBox().getText());
-				async.storePost(p, new AsyncCallback<Void>() {
-				    @Override
-				    public void onFailure(Throwable caught) {
-				        Window.alert(
-				        		"newPost().storePost failed \n" + caught);
-				    }
-				    @Override
-				    public void onSuccess(Void result) {
-				    	newPostDialog.hide();
-				    }
-				});
-			}
-		});
 	}
 
 }

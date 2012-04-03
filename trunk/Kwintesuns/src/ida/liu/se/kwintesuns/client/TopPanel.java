@@ -77,7 +77,7 @@ public class TopPanel extends VerticalPanel {
 		headerGrid.setWidget(0, 1, loggedInLabel);
 		
 		menuGrid.setWidth("100%");
-		menuGrid.getColumnFormatter().setWidth(0, "90px");
+		menuGrid.getColumnFormatter().setWidth(0, "96px");
 		menuGrid.getColumnFormatter().setWidth(1, "*");
 		menuGrid.getColumnFormatter().setWidth(2, "59px");
 		menuGrid.getFlexCellFormatter().setAlignment(0, 2, 

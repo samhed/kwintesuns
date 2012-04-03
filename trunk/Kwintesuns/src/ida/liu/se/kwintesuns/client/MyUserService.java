@@ -10,6 +10,6 @@ public interface MyUserService extends RemoteService {
 	MyUser getCurrentMyUser();
 	
 	void storePost(Post post);
-	ArrayList<Post> getAllPosts(); 
+	ArrayList<Post> getAllPosts();
 	ArrayList<Post> fetchPosts(String filterBy, ArrayList<String> filter) throws IllegalArgumentException;
 }

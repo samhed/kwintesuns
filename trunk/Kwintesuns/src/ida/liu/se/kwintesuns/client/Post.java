@@ -11,14 +11,13 @@ import com.google.gwt.user.client.rpc.IsSerializable;
 public class Post implements IsSerializable {
 	
 	@Id
-	Long id;
+	private String poster;
 	private String title;
 	private String type;
 	private String description;
 	private String picture;
 	private String text;
 	private Date date;
-	private String poster;
 
 	public Post() {}
 	
@@ -29,6 +28,7 @@ public class Post implements IsSerializable {
 		this.description = descr;
 		this.picture = pic;
 		this.text = txt;
+		//TODO: consider setting the date of the post in the storePost function instead
 		this.date = new Date();
 	}
 
