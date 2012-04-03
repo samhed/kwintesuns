@@ -40,7 +40,7 @@
     color						:	#565656;
     cursor						:	hand;
     cursor						:	pointer;
-    padding						:	5px 10px 6px 7px;
+    padding						:	5px 6px 6px 5px;
 }
 .MenuBar .gwt-MenuItem-selected {
     background-color			:	#6299c5;
@@ -63,11 +63,21 @@
 	cursor: pointer;
 }
 
-.dialogVPanel {
+.dialogPanel {
   margin: 5px;
+  position: relative;
+  overflow: scroll;
+}
+
+textarea {
+    resize: none;
 }
 
 /** Set ids using widget.getElement().setId("idOfElement") */
 #closeButton {
+  margin: 15px 6px 6px;
+}
+/** Set ids using widget.getElement().setId("idOfElement") */
+#sendButton {
   margin: 15px 6px 6px;
 }

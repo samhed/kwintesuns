@@ -1,14 +1,14 @@
 package ida.liu.se.kwintesuns.client;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
-@SuppressWarnings("serial")
+import com.google.gwt.user.client.rpc.IsSerializable;
+
 @Entity
-public class MyUser implements Serializable {
+public class MyUser implements IsSerializable {
 	
 	@Id
 	private String id;
@@ -18,6 +18,8 @@ public class MyUser implements Serializable {
 	
 	public MyUser(String i) {
 		this.id = i;
+		this.friendList = new ArrayList<String>();
+		this.friendList.add("test@example.com");
 	}
 
 	public String getFederatedId() {

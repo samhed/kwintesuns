@@ -1,14 +1,14 @@
 package ida.liu.se.kwintesuns.client;
 
-import java.io.Serializable;
 import java.util.Date;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
-@SuppressWarnings("serial")
+import com.google.gwt.user.client.rpc.IsSerializable;
+
 @Entity
-public class Post implements Serializable {
+public class Post implements IsSerializable {
 	
 	@Id
 	Long id;
