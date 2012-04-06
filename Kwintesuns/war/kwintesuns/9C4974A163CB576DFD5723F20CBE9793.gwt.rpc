@@ -1,0 +1,24 @@
+com.google.gwt.i18n.shared.impl.DateRecord, true, true, true, true, com.google.gwt.i18n.shared.impl.DateRecord/3375188634, 3375188634
+com.google.gwt.user.client.rpc.IncompatibleRemoteServiceException, true, true, true, true, com.google.gwt.user.client.rpc.IncompatibleRemoteServiceException/3936916533, 3936916533
+com.google.gwt.user.client.rpc.RpcTokenException, true, true, false, false, com.google.gwt.user.client.rpc.RpcTokenException/2345075298, 2345075298
+com.google.gwt.user.client.rpc.XsrfToken, false, false, true, true, com.google.gwt.user.client.rpc.XsrfToken/4254043109, 4254043109
+ida.liu.se.kwintesuns.client.Comment, true, true, true, true, ida.liu.se.kwintesuns.client.Comment/2841873047, 2841873047
+@ClientFields,ida.liu.se.kwintesuns.client.Comment,id,poster,text,date,postId
+ida.liu.se.kwintesuns.client.MyUser, true, true, false, false, ida.liu.se.kwintesuns.client.MyUser/1926281509, 1926281509
+@ClientFields,ida.liu.se.kwintesuns.client.MyUser,id,friendList
+ida.liu.se.kwintesuns.client.MyUserService, false, false, false, false, _, 3449686734
+ida.liu.se.kwintesuns.client.Post, true, true, true, true, ida.liu.se.kwintesuns.client.Post/3092018197, 3092018197
+@ClientFields,ida.liu.se.kwintesuns.client.Post,id,poster,title,type,description,picture,text,date
+java.lang.Exception, true, false, true, false, java.lang.Exception/1920171873, 1920171873
+java.lang.IllegalArgumentException, true, true, false, false, java.lang.IllegalArgumentException/1755012560, 1755012560
+java.lang.Long, true, true, true, true, java.lang.Long/4227064769, 4227064769
+java.lang.Number, true, false, true, false, java.lang.Number/300033342, 300033342
+java.lang.NumberFormatException, true, true, false, false, java.lang.NumberFormatException/3305228476, 3305228476
+java.lang.RuntimeException, true, false, true, false, java.lang.RuntimeException/515124647, 515124647
+java.lang.String, true, true, true, true, java.lang.String/2004016611, 2004016611
+java.lang.Throwable, true, false, true, false, java.lang.Throwable/2953622131, 2953622131
+java.sql.Date, true, true, true, true, java.sql.Date/730999118, 730999118
+java.sql.Time, true, true, true, true, java.sql.Time/1816797103, 1816797103
+java.sql.Timestamp, true, true, true, true, java.sql.Timestamp/3040052672, 3040052672
+java.util.ArrayList, true, true, true, true, java.util.ArrayList/4159755760, 4159755760
+java.util.Date, true, true, true, true, java.util.Date/3385151746, 3385151746

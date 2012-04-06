@@ -1,11 +1,4 @@
-<!-- Indices written at Tue, 3 Apr 2012 18:27:24 CEST -->
+<!-- Indices written at Fri, 6 Apr 2012 10:30:22 UTC -->
 
-<datastore-indexes>
+<datastore-indexes/>
 
-    <!-- Used 1 time in query history -->
-    <datastore-index kind="Post" ancestor="false" source="auto">
-        <property name="poster" direction="asc"/>
-        <property name="date" direction="asc"/>
-    </datastore-index>
-
-</datastore-indexes>

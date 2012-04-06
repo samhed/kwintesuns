@@ -12,4 +12,7 @@ public interface MyUserService extends RemoteService {
 	void storePost(Post post);
 	ArrayList<Post> getAllPosts();
 	ArrayList<Post> fetchPosts(String filterBy, ArrayList<String> filter) throws IllegalArgumentException;
+	
+	void storeComment(Comment comment);
+	ArrayList<Comment> getComments(Long postId);
 }

@@ -53,6 +53,16 @@
 	font-weight: bold;
 }
 
+.postTitle {
+	font-weight: bold;
+	font-size: 14pt;
+}
+.postItem {	
+    border						:	2px solid #cecece;
+    border-top					:	2px solid #d0d0d0;
+    border-left					:	2px solid #d0d0d0;
+}
+
 .headerStyle {
 	border: 5px solid teal;
 	font-size: 24pt;

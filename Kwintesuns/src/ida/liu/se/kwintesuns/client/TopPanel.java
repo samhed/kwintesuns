@@ -27,7 +27,7 @@ public class TopPanel extends VerticalPanel {
 	private String baseUrl;
 	private MenuItem loginButton;
 	private MenuItem friendsButton;
-	private String loginButtonText;
+	private String loginButtonText = "Login";
 	private MyUser user;
 	private FlexTable menuGrid = new FlexTable();
 	private FlexTable headerGrid = new FlexTable();
@@ -42,14 +42,14 @@ public class TopPanel extends VerticalPanel {
 		header.addClickHandler(new ClickHandler() {
 		    @Override
 		    public void onClick (ClickEvent event){
-		    	if ((baseUrl == "") || (baseUrl == null))
+		    	if (baseUrl.equals(""))
 			    	baseUrl = Window.Location.getHref();
 				Window.Location.replace(baseUrl);
 		    }
 		});
 		
 		loggedInLabel.setStyleName("topBannerText");
-		if ((loggedInLabel.getText() == null) || (loggedInLabel.getText() == ""))
+		if (loggedInLabel.getText().equals(""))
 	        loggedInLabel.setText("Not logged in");	
 		
     	postMenu.addStyleName("MenuBar");
@@ -64,7 +64,7 @@ public class TopPanel extends VerticalPanel {
         friendsButton.setVisible(false);
 
 		loginMenu.addStyleName("MenuBar");
-		if ((loginButtonText == "") || (loginButtonText == null))
+		if (loginButtonText.equals("Logout"))
 			loginButtonText = "Login";
 		loginButton = loginMenu.addItem(loginButtonText, login);
 		
@@ -100,7 +100,8 @@ public class TopPanel extends VerticalPanel {
 		    @Override
 		    public void onFailure(Throwable caught) {
 		        Window.alert("refresh().getCurrentMyUser failed\n" + caught);
-		        if ((loggedInLabel.getText() == null) || (loggedInLabel.getText() == ""))
+		        if (loggedInLabel.getText().equals("") || 
+		        		loggedInLabel.getText().equals("Not logged in"))
 		            loggedInLabel.setText("logging in...");
 		        else
 			        loggedInLabel.setText("logging out...");
@@ -131,7 +132,7 @@ public class TopPanel extends VerticalPanel {
 	
 	private final Command newPost = new Command() {
 		@Override
-		public void execute() {postsPanel.newPost();}
+		public void execute() {postsPanel.newPostDialog();}
 	};	
 	private final Command showVideos = new Command() {
 		@Override
