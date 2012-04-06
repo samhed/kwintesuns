@@ -24,7 +24,7 @@ public class Kwintesuns implements EntryPoint {
 	 */
 	public void onModuleLoad() {
 		
-		contentGrid.setSize("100%", "100%");
+		contentGrid.setWidth("100%");
 		contentGrid.getFlexCellFormatter().setAlignment(0, 0, 
 				HasHorizontalAlignment.ALIGN_LEFT, 
 				HasVerticalAlignment.ALIGN_TOP);

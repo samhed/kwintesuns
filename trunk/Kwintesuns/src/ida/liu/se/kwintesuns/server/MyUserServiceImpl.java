@@ -1,7 +1,9 @@
 package ida.liu.se.kwintesuns.server;
 
 import java.util.ArrayList;
+import java.util.Date;
 
+import ida.liu.se.kwintesuns.client.Comment;
 import ida.liu.se.kwintesuns.client.MyUser;
 import ida.liu.se.kwintesuns.client.MyUserService;
 import ida.liu.se.kwintesuns.client.Post;
@@ -29,6 +31,7 @@ MyUserService {
 	static {
         ObjectifyService.register(MyUser.class);
 		ObjectifyService.register(Post.class);
+		ObjectifyService.register(Comment.class);
 	}
 	
 	public MyUser getCurrentMyUser() {
@@ -66,6 +69,7 @@ MyUserService {
         		post.setPoster(userService.getCurrentUser().getNickname());
         	else
         		post.setPoster("Anonymous");
+    		post.setDate(new Date());
         	ofy.put(post);
         } 
 	}
@@ -99,4 +103,30 @@ MyUserService {
 		}
 		return posts;
 	}
+	
+	public void storeComment(Comment comment) {
+        
+        if (comment != null) {
+        	if (userService.isUserLoggedIn())
+        		comment.setPoster(userService.getCurrentUser().getNickname());
+        	else
+        		comment.setPoster("Anonymous");
+        	comment.setDate(new Date());
+        	ofy.put(comment);
+        } 
+	}
+
+	public ArrayList<Comment> getComments(Long postId) {
+		
+		Iterable<com.googlecode.objectify.Key<Comment>> allKeys = 
+				ofy.query(Comment.class).filter("postId", postId).order("date").fetchKeys();
+		ArrayList<Comment> comments = new ArrayList<Comment>();
+		
+		for (com.googlecode.objectify.Key<Comment> k : allKeys) {
+			Comment c = ofy.get(k);
+			comments.add(c);
+		}
+		
+		return comments;
+	}	
 }

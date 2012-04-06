@@ -11,6 +11,9 @@ import com.google.gwt.user.client.rpc.IsSerializable;
 public class Post implements IsSerializable {
 	
 	@Id
+	Long id;
+	
+	// poster and date is set when the post is stored in the database
 	private String poster;
 	private String title;
 	private String type;
@@ -28,8 +31,10 @@ public class Post implements IsSerializable {
 		this.description = descr;
 		this.picture = pic;
 		this.text = txt;
-		//TODO: consider setting the date of the post in the storePost function instead
-		this.date = new Date();
+	}
+
+	public Long getId() {
+		return id;
 	}
 
 	public String getTitle() {
@@ -51,6 +56,10 @@ public class Post implements IsSerializable {
 	public Date getDate() {
 		return date;
 	}
+	
+	public void setDate(Date date) {
+		this.date = date;
+	}
 
 	public String getPoster() {
 		return poster;
@@ -59,7 +68,7 @@ public class Post implements IsSerializable {
 	public void setPoster(String poster) {
 		this.poster = poster;
 	}
-
+	
 	public String getType() {
 		return type;
 	}

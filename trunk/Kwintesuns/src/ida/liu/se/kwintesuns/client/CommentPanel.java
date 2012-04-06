@@ -32,6 +32,7 @@ public class CommentPanel extends VerticalPanel {
 			}
 		});
 		
+		setVerticalAlignment(HasVerticalAlignment.ALIGN_TOP);
 		add(tB.t);
 		
 		setVerticalAlignment(HasVerticalAlignment.ALIGN_TOP);
