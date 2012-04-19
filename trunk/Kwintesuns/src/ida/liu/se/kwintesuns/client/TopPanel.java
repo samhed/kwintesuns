@@ -24,16 +24,18 @@ public class TopPanel extends VerticalPanel {
 	private MenuBar postMenu = new MenuBar();
 	private MenuBar filterMenu = new MenuBar();
 	private MenuBar loginMenu = new MenuBar();
-	private String baseUrl;
 	private MenuItem loginButton;
 	private MenuItem friendsButton;
+	//private String baseUrl;
 	private String loginButtonText = "Login";
 	private MyUser user;
 	private FlexTable menuGrid = new FlexTable();
 	private FlexTable headerGrid = new FlexTable();
+	//private DialogBox loginDialog = new DialogBox();
+	//private Frame loginFrame = new Frame();
 	private final MyUserServiceAsync async = GWT.create(MyUserService.class);
 	
-	public TopPanel(PostsPanel postsPanel) {
+	public TopPanel(final PostsPanel postsPanel) {
 		
 		this.postsPanel = postsPanel;
 				
@@ -42,9 +44,10 @@ public class TopPanel extends VerticalPanel {
 		header.addClickHandler(new ClickHandler() {
 		    @Override
 		    public void onClick (ClickEvent event){
-		    	if (baseUrl.equals(""))
+		    	/*if (baseUrl.equals("") || (baseUrl == null))
 			    	baseUrl = Window.Location.getHref();
-				Window.Location.replace(baseUrl);
+				Window.Location.replace(baseUrl);*/
+		    	postsPanel.initPosts();
 		    }
 		});
 		
@@ -68,7 +71,10 @@ public class TopPanel extends VerticalPanel {
 			loginButtonText = "Login";
 		loginButton = loginMenu.addItem(loginButtonText, login);
 		
-		headerGrid.setWidth("100%");
+		//loginDialog.hide();
+		//loginDialog.add(loginFrame);
+		
+		headerGrid.setSize("100%", "55px");
 		headerGrid.getColumnFormatter().setWidth(1, "100%");
 		headerGrid.getFlexCellFormatter().setAlignment(0, 1, 
 				HasHorizontalAlignment.ALIGN_RIGHT, 
@@ -76,7 +82,7 @@ public class TopPanel extends VerticalPanel {
 		headerGrid.setWidget(0, 0, header);
 		headerGrid.setWidget(0, 1, loggedInLabel);
 		
-		menuGrid.setWidth("100%");
+		menuGrid.setSize("100%", "35px");
 		menuGrid.getColumnFormatter().setWidth(0, "96px");
 		menuGrid.getColumnFormatter().setWidth(1, "*");
 		menuGrid.getColumnFormatter().setWidth(2, "59px");
@@ -90,8 +96,7 @@ public class TopPanel extends VerticalPanel {
 		setStyleName("topPanel");
 		add(headerGrid);
 		add(menuGrid);
-		setHeight("90px");
-		setWidth("100%");
+		setSize("100%", "90px");
 	}
 
 	//update loggedInLabel, loginButton & friendsButton
@@ -156,6 +161,10 @@ public class TopPanel extends VerticalPanel {
 	};
 	private final Command login = new Command() {
 		@Override
-		public void execute() {Window.Location.replace("/_ah/OpenID");}
+		public void execute() {
+			//loginDialog.show();
+			//loginFrame.setUrl("/_ah/OpenID");
+			Window.Location.replace("/_ah/OpenID");
+		}
 	};
 }

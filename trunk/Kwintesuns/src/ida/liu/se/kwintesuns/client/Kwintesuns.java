@@ -2,44 +2,52 @@ package ida.liu.se.kwintesuns.client;
 
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.user.client.Timer;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.HasHorizontalAlignment;
 import com.google.gwt.user.client.ui.HasVerticalAlignment;
 import com.google.gwt.user.client.ui.RootLayoutPanel;
-import com.google.gwt.user.client.ui.VerticalPanel;
 
 /**
  * Entry point classes define <code>onModuleLoad()</code>.
  */
 public class Kwintesuns implements EntryPoint {
 	
-	private final VerticalPanel mainPanel = new VerticalPanel();
-	private final FlexTable contentGrid = new FlexTable();
-	public PostsPanel postsPanel = new PostsPanel();
-	private TopPanel topPanel = new TopPanel(postsPanel);
+	private FlexTable mainPanel = new FlexTable();
+	private PostsPanel postsPanel = new PostsPanel();
 	private CommentPanel commentPanel = new CommentPanel();
+	private final TopPanel topPanel = new TopPanel(postsPanel);
+	private FlexTable contentGrid = new FlexTable();
 
 	/**
 	 * This is the entry point method.
 	 */
 	public void onModuleLoad() {
 		
-		contentGrid.setWidth("100%");
+	    Window.enableScrolling(false);
+	    Window.setMargin("0px");
+		
+		mainPanel.setSize("100%", "100%");
+		mainPanel.getRowFormatter().setVerticalAlign(0, HasVerticalAlignment.ALIGN_BOTTOM);
+		mainPanel.getCellFormatter().setHeight(0, 0, "90px");
+		mainPanel.getRowFormatter().setVerticalAlign(1, HasVerticalAlignment.ALIGN_TOP);
+		mainPanel.setCellSpacing(0);
+		
+		contentGrid.setSize("100%", "100%");
 		contentGrid.getFlexCellFormatter().setAlignment(0, 0, 
 				HasHorizontalAlignment.ALIGN_LEFT, 
 				HasVerticalAlignment.ALIGN_TOP);
-		contentGrid.setCellSpacing(0);
+		contentGrid.getFlexCellFormatter().setAlignment(0, 1, 
+				HasHorizontalAlignment.ALIGN_LEFT, 
+				HasVerticalAlignment.ALIGN_TOP);
+		//contentGrid.setCellSpacing(0);
 		contentGrid.getColumnFormatter().setWidth(0, "50%");
-		contentGrid.getColumnFormatter().setWidth(1, "50%");
 		
 		contentGrid.setWidget(0, 0, postsPanel);
 		contentGrid.setWidget(0, 1, commentPanel);
 		
-		mainPanel.setWidth("100%");
-		mainPanel.setVerticalAlignment(HasVerticalAlignment.ALIGN_TOP);
-		
-		mainPanel.add(topPanel);
-		mainPanel.add(contentGrid);
+		mainPanel.setWidget(0,0, topPanel);
+		mainPanel.setWidget(1,0, contentGrid);
 		
 		RootLayoutPanel.get().setStyleName("bgStyle");
 		RootLayoutPanel.get().add(mainPanel);

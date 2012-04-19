@@ -8,16 +8,21 @@
 	background-color: #F2F2F2;
 }
 
-.testStyle {
+.redBG {
 	background-color: red;
 }
+
+.yellowBG {
+	background-color: yellow;
+}
+
 
 /***********************************************************
 *                          MenuBar
 ***********************************************************/
 .MenuBar {
 	border						:	1px solid #666;
-    margin                      :   0 auto;
+    margin						: 	0px;
 }
 .MenuBar table {
     border-collapse             :   separate;
@@ -90,4 +95,8 @@ textarea {
 /** Set ids using widget.getElement().setId("idOfElement") */
 #sendButton {
   margin: 15px 6px 6px;
+}
+
+.watermark {
+   color: DarkGray;
 }

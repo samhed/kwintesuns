@@ -19,7 +19,6 @@ import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.ScrollPanel;
-import com.google.gwt.user.client.ui.Widget;
 
 public class PostsPanel extends ScrollPanel{
 	
@@ -43,7 +42,6 @@ public class PostsPanel extends ScrollPanel{
 		postsTable.setWidth("100%");
 		add(postsTable);
 		
-		setHeight("100%");
 		setWidth("100%");
 	}
 	
@@ -58,27 +56,30 @@ public class PostsPanel extends ScrollPanel{
 				public void onSuccess(ArrayList<Post> result) {
 					updatePostList(result);
 				}
-				});	
+			});
 	}
 	
 	private void updatePostList(ArrayList<Post> result) {
-		postList = result;
-		int row = 0;
-        postsTable.removeAllRows();
-        //loop the array list and post getters to add 
-        //records to the table
-        for (Post post : postList) {
-        	row = postsTable.getRowCount();
-        	postsTable.setWidget(row, 0,
-        			newPostItem(post.getType(),	post.getDate(),
-        					post.getTitle(), post.getPoster(),
-        					post.getText(), post.getPicture(),
-        					post.getDescription()));
-        }
-        Post first = result.get(0);
-		postItemClick((FlexTable) postsTable.getWidget(0, 0), first.getPoster(), 
-				first.getText(), first.getDate());
-		selectedPost = 0;
+		if (!result.isEmpty()) {
+			postList = result;
+			int row = 0;
+	        postsTable.removeAllRows();
+	        //loop the array list and post getters to add 
+	        //records to the table
+	        for (Post post : postList) {
+	        	row = postsTable.getRowCount();
+	        	postsTable.setWidget(row, 0,
+	        			newPostItem(post.getType(),	post.getDate(),
+	        					post.getTitle(), post.getPoster(),
+	        					post.getText(), post.getPicture(),
+	        					post.getDescription()));
+	        }
+	        Post first = result.get(0);
+			postItemExpand((FlexTable) postsTable.getWidget(0, 0), first.getPoster(), 
+					first.getText(), first.getDate());
+			selectedPost = 0;
+			compressNonSelectedPostItems();
+		}
 	}
 	
 	private FlexTable newPostItem(String type, final Date date, String title, 
@@ -94,17 +95,20 @@ public class PostsPanel extends ScrollPanel{
 		Label titleLabel = new Label(title);
 		titleLabel.setStyleName("postTitle");
 
-		if (pictureUrl.equals(""))
+		if (pictureUrl.equals("")) {
 			p.setWidget(0, 0, new Image(getDefaultTypeImageUrl(type)));
-		else
-			p.setWidget(0, 0, new Image(pictureUrl, 0, 0, 34, 34));
+		} else {
+			Image img = new Image(pictureUrl);
+			img.setSize("34px", "34px");
+			p.setWidget(0, 0, img);
+		}
 		p.setWidget(0, 1, titleLabel);
 		p.setText(0, 2, description);
 		
 		p.addClickHandler(new ClickHandler() {		
 			@Override
 			public void onClick(ClickEvent event) {
-				postItemClick(p, poster, text, date);
+				postItemExpand(p, poster, text, date);
 				selectedPost = postsTable.getCellForEvent(event).getRowIndex();
 				compressNonSelectedPostItems();
 			}
@@ -112,7 +116,7 @@ public class PostsPanel extends ScrollPanel{
 		return p;
 	}
 	
-	private void postItemClick(FlexTable p, String poster, String text, Date date) {
+	private void postItemExpand(FlexTable p, String poster, String text, Date date) {
 		p.getCellFormatter().setAlignment(0, 3,
 				HasHorizontalAlignment.ALIGN_RIGHT,
 				HasVerticalAlignment.ALIGN_TOP);
@@ -128,12 +132,12 @@ public class PostsPanel extends ScrollPanel{
 	
 	private void compressNonSelectedPostItems() {
 		int row = 0;
-		for (Widget w : postsTable) {
-			FlexTable p = (FlexTable) w;
-        	if (row != selectedPost) {
+		for (int i = 0; i<postList.size(); i++) {
+			FlexTable p = (FlexTable) postsTable.getWidget(i, 0);
+        	if (row != selectedPost) { //compress all except for selected
         		p.getCellFormatter().setAlignment(0, 1, 
         				HasHorizontalAlignment.ALIGN_LEFT,
-        				HasVerticalAlignment.ALIGN_TOP);
+        				HasVerticalAlignment.ALIGN_MIDDLE);
         		try {
         			p.removeCell(0, 3);
         			p.removeRow(1);
@@ -171,6 +175,7 @@ public class PostsPanel extends ScrollPanel{
 		newPostDialog.addCloseHandler(new CloseHandler<PopupPanel>() {
 			@Override
 			public void onClose(CloseEvent<PopupPanel> event) {
+				//Window.alert("newPostDialog closed");
 				initPosts();
 			}
 		});
