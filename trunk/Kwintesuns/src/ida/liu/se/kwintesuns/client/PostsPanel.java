@@ -60,12 +60,12 @@ public class PostsPanel extends ScrollPanel{
 	}
 	
 	private void updatePostList(ArrayList<Post> result) {
+		postList = result;
+        postsTable.removeAllRows();
 		if (!result.isEmpty()) {
-			postList = result;
-			int row = 0;
-	        postsTable.removeAllRows();
 	        //loop the array list and post getters to add 
 	        //records to the table
+			int row = 0;
 	        for (Post post : postList) {
 	        	row = postsTable.getRowCount();
 	        	postsTable.setWidget(row, 0,

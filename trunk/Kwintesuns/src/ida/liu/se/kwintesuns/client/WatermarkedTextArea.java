@@ -2,15 +2,21 @@ package ida.liu.se.kwintesuns.client;
 
 import com.google.gwt.event.dom.client.BlurEvent;
 import com.google.gwt.event.dom.client.BlurHandler;
+import com.google.gwt.event.dom.client.ChangeEvent;
+import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.FocusEvent;
 import com.google.gwt.event.dom.client.FocusHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.ui.TextArea;
 
-public class WatermarkedTextArea extends TextArea implements BlurHandler, FocusHandler {
+public class WatermarkedTextArea extends TextArea implements BlurHandler, FocusHandler, ChangeHandler {
 	String watermark;
+	int charLimit = 300;
+	boolean withinLimit = true;
+
 	HandlerRegistration blurHandler;
 	HandlerRegistration focusHandler;
+	HandlerRegistration keyPressHandler;
 	
 	public WatermarkedTextArea()	{
 		super();
@@ -24,6 +30,14 @@ public class WatermarkedTextArea extends TextArea implements BlurHandler, FocusH
 	public WatermarkedTextArea(String defaultValue, String watermark) {
 		this(defaultValue);
 		setWatermark(watermark);
+	}
+
+	public boolean isWithinLimit() {
+		return withinLimit;
+	}
+	
+	public void setCharLimit(int charLimit) {
+		this.charLimit = charLimit;
 	}
 	
 	/**
@@ -48,6 +62,7 @@ public class WatermarkedTextArea extends TextArea implements BlurHandler, FocusH
 	@Override
 	public void onBlur(BlurEvent event) {
 		EnableWatermark();
+		onTextAreaContentChanged();
 	}
 	
 	void EnableWatermark() {
@@ -66,5 +81,24 @@ public class WatermarkedTextArea extends TextArea implements BlurHandler, FocusH
 			// Hide watermark
 			setText("");
 		}
+		onTextAreaContentChanged();
 	}
+
+	@Override
+	public void onChange(ChangeEvent event) {
+		  onTextAreaContentChanged();
+	}
+	
+	private void onTextAreaContentChanged()
+    {
+		int counter = new Integer(getText().length()).intValue();
+		int charsRemaining = charLimit - counter;
+		if (charsRemaining >= 0) {
+			removeStyleName("redBG");
+			withinLimit = true;
+		} else {
+			setStyleName("redBG");
+			withinLimit = false;
+		}
+    }
 }
