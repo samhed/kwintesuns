@@ -14,16 +14,18 @@ public class Post implements IsSerializable {
 	Long id;
 	
 	// poster and date is set when the post is stored in the database
-	private String poster;
+	private String author;
 	private String title;
 	private String type;
 	private String description;
 	private String picture;
 	private String text;
+	private String update;
 	private Date date;
 
 	public Post() {}
-	
+
+	// should only be called from the serverside
 	public Post(String ttl, String typ, String descr, 
 			String pic, String txt) {
 		this.title = ttl;
@@ -31,6 +33,21 @@ public class Post implements IsSerializable {
 		this.description = descr;
 		this.picture = pic;
 		this.text = txt;
+	}
+
+	// should only be called from the serverside
+	public void setDate(Date date) {
+		this.date = date;
+	}
+
+	// should only be called from the serverside
+	public void setPoster(String poster) {
+		this.author = poster;
+	}
+
+	// should only be called from the serverside
+	public void setUpdate(String update) {
+		this.update = update;
 	}
 
 	public Long getId() {
@@ -56,20 +73,16 @@ public class Post implements IsSerializable {
 	public Date getDate() {
 		return date;
 	}
-	
-	public void setDate(Date date) {
-		this.date = date;
-	}
 
-	public String getPoster() {
-		return poster;
-	}
-
-	public void setPoster(String poster) {
-		this.poster = poster;
+	public String getAuthor() {
+		return author;
 	}
 	
 	public String getType() {
 		return type;
+	}
+
+	public String getUpdate() {
+		return update;
 	}
 }

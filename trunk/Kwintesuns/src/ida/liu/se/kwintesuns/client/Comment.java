@@ -17,13 +17,29 @@ public class Comment implements IsSerializable {
 	private String poster;
 	private String text;
 	private Date date;
-	private Long postId;
+	private Long commentId;
 
 	public Comment() {}
-	
-	public Comment(String txt, Long pid) {
+
+	// should only be called from the serverside
+	public Comment(String txt, Long cid) {
 		this.text = txt;
-		this.postId = pid;
+		this.commentId = cid;
+	}
+
+	// should only be called from the serverside
+	public void setDate(Date date) {
+		this.date = date;
+	}
+
+	// should only be called from the serverside
+	public void setPoster(String poster) {
+		this.poster = poster;
+	}
+
+	// should only be called from the serverside
+	public void setCommentId(Long commentId) {
+		this.commentId = commentId;
 	}
 	
 	public String getText() {
@@ -33,20 +49,12 @@ public class Comment implements IsSerializable {
 	public Date getDate() {
 		return date;
 	}
-	
-	public void setDate(Date date) {
-		this.date = date;
-	}
 
 	public String getPoster() {
 		return poster;
 	}
 
-	public void setPoster(String poster) {
-		this.poster = poster;
-	}
-
-	public Long getPostId() {
-		return postId;
+	public Long getCommentId() {
+		return commentId;
 	}
 }

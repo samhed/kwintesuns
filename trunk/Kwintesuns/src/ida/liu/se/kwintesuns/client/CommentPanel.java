@@ -15,8 +15,8 @@ public class CommentPanel extends VerticalPanel {
 		
 		newCommentTextArea.setWidth("98.5%");
 		newCommentTextArea.setWatermark("Write a new comment (Max 300 characters)");
-		newCommentTextArea.setCharLimit(300);
-		newCommentTextArea.getElement().setAttribute("maxlength", "100");
+		newCommentTextArea.setCharLimit(300); //for firefox
+		newCommentTextArea.getElement().setAttribute("maxlength", "300"); //for chrome
 		newCommentTextArea.addKeyDownHandler(new KeyDownHandler() {
 		    @Override
 		    public void onKeyDown(KeyDownEvent event) {

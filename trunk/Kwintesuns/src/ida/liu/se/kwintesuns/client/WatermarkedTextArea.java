@@ -40,11 +40,6 @@ public class WatermarkedTextArea extends TextArea implements BlurHandler, FocusH
 		this.charLimit = charLimit;
 	}
 	
-	/**
-	 * Adds a watermark if the parameter is not NULL or EMPTY
-	 * 
-	 * @param watermark
-	 */
 	public void setWatermark(final String watermark) {
 		this.watermark = watermark;
 		

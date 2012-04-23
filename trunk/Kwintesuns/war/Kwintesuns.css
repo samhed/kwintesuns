@@ -97,6 +97,16 @@ textarea {
   margin: 15px 6px 6px;
 }
 
+.updateButton {
+    background-color			:	green;
+    padding						:	0 0 0 0;
+}
+
+.removeButton {
+    background-color			:	red;
+    padding						:	0 0 0 0;
+}
+
 .watermark {
    color: DarkGray;
 }

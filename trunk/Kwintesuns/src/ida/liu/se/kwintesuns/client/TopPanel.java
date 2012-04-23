@@ -33,7 +33,7 @@ public class TopPanel extends VerticalPanel {
 	private FlexTable headerGrid = new FlexTable();
 	//private DialogBox loginDialog = new DialogBox();
 	//private Frame loginFrame = new Frame();
-	private final MyUserServiceAsync async = GWT.create(MyUserService.class);
+	private final ServerServiceAsync async = GWT.create(ServerService.class);
 	
 	public TopPanel(final PostsPanel postsPanel) {
 		
@@ -157,7 +157,7 @@ public class TopPanel extends VerticalPanel {
 	};	
 	private final Command showFriends = new Command() {
 		@Override
-		public void execute() {postsPanel.showPostList("poster", user.getFriendList());}
+		public void execute() {postsPanel.showPostList("poster", user.getSubscriptionList());}
 	};
 	private final Command login = new Command() {
 		@Override

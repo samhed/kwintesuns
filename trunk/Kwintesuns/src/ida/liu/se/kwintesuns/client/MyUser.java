@@ -12,25 +12,39 @@ public class MyUser implements IsSerializable {
 	
 	@Id 	
 	private String id;
-	private ArrayList<String> friendList;
-	
+	private ArrayList<String> subscriptionList;
+	private boolean administrator;
+
 	public MyUser() {}
 	
-	public MyUser(String i) {
+	// should only be called from the serverside
+	public MyUser(String i, boolean admin) {
 		this.id = i;
-		this.friendList = new ArrayList<String>();
-		this.friendList.add("test@example.com");
+		this.administrator = admin;
+		this.subscriptionList = new ArrayList<String>();
+		//TODO temporary:
+		this.addSubscription("test@example.com");
+	}
+
+	// should only be called from the serverside
+	public void addSubscription(String emailToSubscribeTo) {
+		this.subscriptionList.add(emailToSubscribeTo);
+	}
+
+	// should only be called from the serverside
+	public void removeSubscription(String emailToUnsubscribeFrom) {
+		this.subscriptionList.remove(emailToUnsubscribeFrom);
+	}
+
+	public boolean isAdministrator() {
+		return administrator;
 	}
 
 	public String getFederatedId() {
 		return this.id;
 	}
 
-	public ArrayList<String> getFriendList() {
-		return friendList;
-	}
-
-	public void setFriendList(ArrayList<String> friendList) {
-		this.friendList = friendList;
+	public ArrayList<String> getSubscriptionList() {
+		return subscriptionList;
 	}
 }
