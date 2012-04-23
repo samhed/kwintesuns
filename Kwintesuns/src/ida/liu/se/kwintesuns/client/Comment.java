@@ -14,7 +14,7 @@ public class Comment implements IsSerializable {
 	Long id;
 
 	// poster and date is set when the post is stored in the database
-	private String poster;
+	private String author;
 	private String text;
 	private Date date;
 	private Long commentId;
@@ -33,8 +33,8 @@ public class Comment implements IsSerializable {
 	}
 
 	// should only be called from the serverside
-	public void setPoster(String poster) {
-		this.poster = poster;
+	public void setAuthor(String author) {
+		this.author = author;
 	}
 
 	// should only be called from the serverside
@@ -50,8 +50,8 @@ public class Comment implements IsSerializable {
 		return date;
 	}
 
-	public String getPoster() {
-		return poster;
+	public String getAuthor() {
+		return author;
 	}
 
 	public Long getCommentId() {

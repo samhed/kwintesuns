@@ -14,8 +14,8 @@ import com.google.gwt.user.client.ui.RootLayoutPanel;
 public class Kwintesuns implements EntryPoint {
 	
 	private FlexTable mainPanel = new FlexTable();
-	private PostsPanel postsPanel = new PostsPanel();
 	private CommentPanel commentPanel = new CommentPanel();
+	private PostsPanel postsPanel = new PostsPanel(commentPanel);
 	private final TopPanel topPanel = new TopPanel(postsPanel);
 	private FlexTable contentGrid = new FlexTable();
 
@@ -40,7 +40,6 @@ public class Kwintesuns implements EntryPoint {
 		contentGrid.getFlexCellFormatter().setAlignment(0, 1, 
 				HasHorizontalAlignment.ALIGN_LEFT, 
 				HasVerticalAlignment.ALIGN_TOP);
-		//contentGrid.setCellSpacing(0);
 		contentGrid.getColumnFormatter().setWidth(0, "50%");
 		
 		contentGrid.setWidget(0, 0, postsPanel);

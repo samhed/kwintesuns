@@ -9,7 +9,7 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 
-public class NewEditDialog extends NewPostDialog {
+public class EditPostDialog extends NewPostDialog {
 	
 	private final Button closeButton = new Button("Close");
 	private final Button updateButton = new Button("Update");
@@ -22,10 +22,11 @@ public class NewEditDialog extends NewPostDialog {
 	private String oldText;
 	private String oldUpdate;
 	private Date oldDate;
+	private Long oldId;
 	
 	private final ServerServiceAsync async = GWT.create(ServerService.class);
 	
-	public NewEditDialog(final Post post) {
+	public EditPostDialog(final Post oldPost) {
 
 		setText("Update post");
 		setAnimationEnabled(true);
@@ -36,7 +37,7 @@ public class NewEditDialog extends NewPostDialog {
 		addItemToDialogPanel(updateButton, 15, 440);
 		addItemToDialogPanel(closeButton, 510, 440);
 		
-		getOldValues(post);
+		getOldValues(oldPost);
 		
 		if (oldType == "video")
 			setTypeBoxSelected(0);
@@ -76,7 +77,7 @@ public class NewEditDialog extends NewPostDialog {
 							+ " at: "
 							+ new Date().toString());
 					p.setDate(oldDate);
-					async.editPost(p.getId(), p,
+					async.editPost(oldId, p,
 							new AsyncCallback<Void>() {
 								@Override
 								public void onFailure(Throwable caught) {
@@ -105,5 +106,6 @@ public class NewEditDialog extends NewPostDialog {
 		oldText = post.getText();
 		oldUpdate = post.getUpdate();
 		oldDate = post.getDate();
+		oldId = post.getId();
 	}
 }

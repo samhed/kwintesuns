@@ -12,10 +12,10 @@ public interface ServerService extends RemoteService {
 	void unsubscribe(String emailToUnsubscribeFrom);
 	
 	void storePost(Post post);
-	void deletePost(Long postId);
-	void editPost(Long postId, Post updatedPost);
+	void deletePost(Long postId) throws NullPointerException;
+	void editPost(Long postId, Post updatedPost) throws NullPointerException;
 	ArrayList<Post> getAllPosts();
-	ArrayList<Post> fetchPosts(String filterBy, ArrayList<String> filter) throws IllegalArgumentException;
+	ArrayList<Post> fetchPosts(String filterBy, ArrayList<String> filter);
 	
 	void storeComment(Comment comment);
 	void deleteComment(Long commentId);

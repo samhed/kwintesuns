@@ -62,10 +62,17 @@
 	font-weight: bold;
 	font-size: 14pt;
 }
-.postItem {	
+.postDescription {
+	font-size: 12pt;
+}
+
+.postItem {
     border						:	2px solid #cecece;
     border-top					:	2px solid #d0d0d0;
     border-left					:	2px solid #d0d0d0;
+}
+.commentItem {
+    border-top					:	2px solid #d0d0d0;
 }
 
 .headerStyle {

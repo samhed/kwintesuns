@@ -12,6 +12,7 @@ import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
+import com.googlecode.objectify.NotFoundException;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.Query;
@@ -64,7 +65,7 @@ ServerService {
 	private boolean userIsNew(User user) {
 		try {
 			ofy.get(MyUser.class, user.getFederatedIdentity());
-		} catch (Exception e) {
+		} catch (IllegalArgumentException e) {
 			return true; //user not found
 		}
 		return false;
@@ -110,17 +111,23 @@ ServerService {
 	}
 
 	// delete a post stored in the datastore
-	public void deletePost(Long postId) {
+	public void deletePost(Long postId) throws NullPointerException {
 		try {
 			ofy.delete(Post.class, postId);
-		} catch (Exception e) {
+		} catch (NullPointerException e) {
+			throw e;
 		}
 	}
 
 	// update a post stored in the datastore
-	public void editPost(Long oldPostId, Post updatedPost) {
+	public void editPost(Long oldPostId, Post updatedPost) throws NullPointerException {
 		if (updatedPost != null) {
-			deletePost(oldPostId);
+			try {
+				Post p = ofy.get(Post.class, oldPostId);
+				deletePost(p.getId());
+			} catch (NullPointerException e) {
+				throw e;
+			}
 
 			ofy.put(updatedPost);
 			
@@ -146,7 +153,7 @@ ServerService {
 			try {
 				p = ofy.get(k);
 				posts.add(p);
-			} catch (Exception e) {
+			} catch (NotFoundException e) {
 				//this entry was probably just removed - skip it
 			}
 		}		
@@ -158,15 +165,17 @@ ServerService {
 		
 		Query<Post> q = null;
 		ArrayList<Post> posts = new ArrayList<Post>();
-		try {
-			for (int i = 0; i < filter.size(); i++) {
+		// Loop through the list of filters and query the db using each one
+		for (int i = 0; i < filter.size(); i++) {
+			try {
 				// sorts the query by date in descending order
 				q = ofy.query(Post.class).filter(filterBy, filter.get(i)).order("-date");
-				//Loop through the query results and add to the array
+				// Loop through the query results and add to the array
 				for (Post fetched : q)
 					posts.add(fetched);
+			} catch (NullPointerException e) {
+				// the query didn't find any matching posts for this filter - skip it
 			}
-		} catch (Exception e) {
 		}
 		return posts;
 	}
@@ -180,9 +189,9 @@ ServerService {
 		
         if (comment != null) {
         	if (userService.isUserLoggedIn())
-        		comment.setPoster(userService.getCurrentUser().getNickname());
+        		comment.setAuthor(userService.getCurrentUser().getNickname());
         	else
-        		comment.setPoster("Anonymous");
+        		comment.setAuthor("Anonymous");
         	comment.setDate(new Date());
         	ofy.put(comment);
         } 
