@@ -5,7 +5,7 @@
 	<classpathentry kind="con" path="com.google.appengine.eclipse.core.GAE_CONTAINER/App Engine (1)"/>
 	<classpathentry kind="con" path="com.google.gwt.eclipse.core.GWT_CONTAINER/GWT (1)"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="C:/Users/Samuel/Documents/TDDD27 - Avancerad Webprogrammering/openid4java-0.9.6.662/openid4java-0.9.6.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Samuel/Documents/TDDD27 - Avancerad Webprogrammering/objectify-3.1/objectify-3.1.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Hans/Documents/TDDD27/openid4java-0.9.6.662/openid4java-0.9.6.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Hans/Documents/TDDD27/objectify-3.1/objectify-3.1.jar"/>
 	<classpathentry kind="output" path="war/WEB-INF/classes"/>
 </classpath>
