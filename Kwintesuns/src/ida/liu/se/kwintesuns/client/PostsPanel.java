@@ -1,7 +1,6 @@
 package ida.liu.se.kwintesuns.client;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,6 +11,7 @@ import com.google.gwt.event.logical.shared.CloseEvent;
 import com.google.gwt.event.logical.shared.CloseHandler;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.HasHorizontalAlignment;
 import com.google.gwt.user.client.ui.HasVerticalAlignment;
@@ -24,10 +24,35 @@ public class PostsPanel extends ScrollPanel{
 	
 	private FlexTable postsTable = new FlexTable();
 	private final NewPostDialog newPostDialog = new NewPostDialog();
-	private final MyUserServiceAsync async = GWT.create(MyUserService.class);
+	private final ServerServiceAsync async = GWT.create(ServerService.class);
 	private ArrayList<Post> postList;
 	private int selectedPost;
+	private String currentUser = "";
+	private boolean userIsAdmin = false;
 	
+	private AsyncCallback<MyUser> checkUserCallback = new AsyncCallback<MyUser>() {
+		@Override
+		public void onFailure(Throwable caught) {
+			Window.alert("PostsPanel.checkUserCallback failed \n"
+				+ caught);
+		}
+		@Override
+		public void onSuccess(MyUser result) {
+			if (result != null) {
+				userIsAdmin = result.isAdministrator();
+				currentUser = result.getFederatedId();
+			}
+		}
+    };
+	
+    private CloseHandler<PopupPanel> dialogCloseHandler = new CloseHandler<PopupPanel>() {
+		@Override
+		public void onClose(CloseEvent<PopupPanel> event) {
+			//Window.alert("newPostDialog closed");
+			initPosts();
+		}
+	};
+    
 	private static final Map<String, String> defaultTypeImageUrls;
 	static {
 		defaultTypeImageUrls = new HashMap<String, String>();
@@ -39,6 +64,7 @@ public class PostsPanel extends ScrollPanel{
 	}
 	
 	public PostsPanel() {
+		
 		postsTable.setWidth("100%");
 		add(postsTable);
 		
@@ -46,13 +72,14 @@ public class PostsPanel extends ScrollPanel{
 	}
 	
 	public void initPosts() {
-		MyUserServiceAsync async = GWT.create(MyUserService.class);
+		ServerServiceAsync async = GWT.create(ServerService.class);
 		async.getAllPosts(new AsyncCallback<ArrayList<Post>>() {
 				@Override
 				public void onFailure(Throwable caught) {
 					Window.alert("initPosts().getAllPosts failed \n"
 						+ caught);
 				}
+				@Override
 				public void onSuccess(ArrayList<Post> result) {
 					updatePostList(result);
 				}
@@ -69,67 +96,123 @@ public class PostsPanel extends ScrollPanel{
 	        for (Post post : postList) {
 	        	row = postsTable.getRowCount();
 	        	postsTable.setWidget(row, 0,
-	        			newPostItem(post.getType(),	post.getDate(),
-	        					post.getTitle(), post.getPoster(),
-	        					post.getText(), post.getPicture(),
-	        					post.getDescription()));
+	        			newPostItem(post));
 	        }
 	        Post first = result.get(0);
-			postItemExpand((FlexTable) postsTable.getWidget(0, 0), first.getPoster(), 
-					first.getText(), first.getDate());
+			postItemExpand((FlexTable) postsTable.getWidget(0, 0), first);
 			selectedPost = 0;
 			compressNonSelectedPostItems();
 		}
 	}
 	
-	private FlexTable newPostItem(String type, final Date date, String title, 
-			final String poster, final String text, String pictureUrl, 
-			String description) {
+	private FlexTable newPostItem(final Post post) {
 
-		final FlexTable p = new FlexTable();
-		p.setStyleName("postItem");
-		p.setWidth("100%");
-		p.getColumnFormatter().setWidth(1, "25%");
-		p.getColumnFormatter().setWidth(2, "75%");
+		final FlexTable postItem = new FlexTable();
+		postItem.setStyleName("postItem");
+		postItem.setWidth("100%");
+		postItem.getColumnFormatter().setWidth(1, "25%");
+		postItem.getColumnFormatter().setWidth(2, "75%");
 				
-		Label titleLabel = new Label(title);
+		Label titleLabel = new Label(post.getTitle());
 		titleLabel.setStyleName("postTitle");
 
-		if (pictureUrl.equals("")) {
-			p.setWidget(0, 0, new Image(getDefaultTypeImageUrl(type)));
+		// if the user chose to specify a picture url, use it
+		// otherwise use the default images
+		if (post.getPicture().equals("")) {
+			postItem.setWidget(0, 0, new Image(getDefaultTypeImageUrl(post.getType())));
 		} else {
-			Image img = new Image(pictureUrl);
+			Image img = new Image(post.getPicture());
 			img.setSize("34px", "34px");
-			p.setWidget(0, 0, img);
+			postItem.setWidget(0, 0, img);
 		}
-		p.setWidget(0, 1, titleLabel);
-		p.setText(0, 2, description);
+		postItem.setWidget(0, 1, titleLabel);
+		postItem.setText(0, 2, post.getDescription());
 		
-		p.addClickHandler(new ClickHandler() {		
+		postItem.addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
-				postItemExpand(p, poster, text, date);
-				selectedPost = postsTable.getCellForEvent(event).getRowIndex();
+				postItemExpand(postItem, post);
+				try {
+					selectedPost = postsTable.getCellForEvent(event).getRowIndex();
+				} catch (Exception e) {
+				}
 				compressNonSelectedPostItems();
 			}
 		});
-		return p;
+		return postItem;
 	}
 	
-	private void postItemExpand(FlexTable p, String poster, String text, Date date) {
-		p.getCellFormatter().setAlignment(0, 3,
+	// show more info about the selected post
+	// shows poster, text and date as well as a delete button for moderators
+	private void postItemExpand(FlexTable postItem, Post post) {
+        
+		postItem.getCellFormatter().setAlignment(0, 3,
 				HasHorizontalAlignment.ALIGN_RIGHT,
 				HasVerticalAlignment.ALIGN_TOP);
-		p.setText(0, 3, "by: " + poster);
-		p.setText(1, 2, text);
-		p.getCellFormatter().setAlignment(1, 3, 
+		postItem.getColumnFormatter().setWidth(2, "55%");
+		postItem.getColumnFormatter().setWidth(3, "20%");
+		postItem.setText(0, 3, "by: " + post.getAuthor());
+		postItem.setText(1, 2, post.getText());
+		postItem.getCellFormatter().setAlignment(1, 3, 
 				HasHorizontalAlignment.ALIGN_RIGHT,
 				HasVerticalAlignment.ALIGN_BOTTOM);
-		p.setText(1, 3, date.toString());
-		p.getColumnFormatter().setWidth(2, "55%");
-		p.getColumnFormatter().setWidth(3, "20%");
+		postItem.setText(1, 3, post.getDate().toString());
+		
+		// if the current user is a admin, show the remove button
+        async.getCurrentMyUser(checkUserCallback);
+        if (userIsAdmin) {
+        	Button removeButton = makeRemoveButton(post.getId());
+        	
+        	postItem.setWidget(0, 4, removeButton);
+        }
+		// if the current user is the author of the selected post or if he
+        // is a admin, show the update button
+        if (currentUser == post.getAuthor() || userIsAdmin) {
+        	Button updateButton = makeUpdateButton(post);
+        	
+    		postItem.getColumnFormatter().setWidth(2, "50%");
+    		postItem.getColumnFormatter().setWidth(4, "5%");
+        	postItem.setWidget(1, 4, updateButton);
+        }
 	}
 	
+	private Button makeUpdateButton(final Post post) {
+		Button b = new Button();
+		b.setSize("17px", "17px");
+		b.setStyleName("updateButton");
+		b.addClickHandler(new ClickHandler() {			
+			@Override
+			public void onClick(ClickEvent event) {
+				editPostDialog(post);
+			}
+		});
+		return b;
+	}
+
+	private Button makeRemoveButton(final Long postId) {
+		Button b = new Button();
+		b.setSize("17px", "17px");
+		b.setStyleName("removeButton");
+		b.addClickHandler(new ClickHandler() {			
+			@Override
+			public void onClick(ClickEvent event) {
+				async.deletePost(postId, 
+						new AsyncCallback<Void>() {
+							@Override
+							public void onFailure(Throwable caught) {
+								Window.alert("PostsPanel.deletePost failed \n"
+										+ caught);
+							}
+							@Override
+							public void onSuccess(Void result) {
+								initPosts();
+							}
+						});
+			}
+		});
+		return b;
+	}
+
 	private void compressNonSelectedPostItems() {
 		int row = 0;
 		for (int i = 0; i<postList.size(); i++) {
@@ -140,8 +223,17 @@ public class PostsPanel extends ScrollPanel{
         				HasVerticalAlignment.ALIGN_MIDDLE);
         		try {
         			p.removeCell(0, 3);
+        		} catch (Exception e) {
+        		} try {
         			p.removeRow(1);
-        		} catch (Exception e) {}
+        		} catch (Exception e) {    			
+        		} try {
+        			p.removeCell(0, 4);        			
+        		} catch (Exception e) {    			
+        		} try {
+        			p.removeCell(1, 4);        			
+        		} catch (Exception e) {   			
+        		}
         		p.getColumnFormatter().setWidth(2, "75%");
 			}
         	row++;
@@ -163,21 +255,23 @@ public class PostsPanel extends ScrollPanel{
 		      	  Window.alert("makePostList(String filterBy).fetchPosts failed \n"
 		                  + caught);
 		        }
+				@Override
 		        public void onSuccess(ArrayList<Post> result) {
 		        	updatePostList(result);
 		        }
 		});
 	}
+
+	private void editPostDialog(Post post) {
+		NewEditDialog newEditDialog = new NewEditDialog(post);
+		newEditDialog.show();
+		newEditDialog.center();		
+		newEditDialog.addCloseHandler(dialogCloseHandler);
+	}
 	
 	public void newPostDialog() {
 		newPostDialog.show();
 		newPostDialog.center();
-		newPostDialog.addCloseHandler(new CloseHandler<PopupPanel>() {
-			@Override
-			public void onClose(CloseEvent<PopupPanel> event) {
-				//Window.alert("newPostDialog closed");
-				initPosts();
-			}
-		});
+		newPostDialog.addCloseHandler(dialogCloseHandler);
 	}
 }
