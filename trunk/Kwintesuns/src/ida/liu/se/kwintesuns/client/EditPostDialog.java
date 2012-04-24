@@ -73,18 +73,18 @@ public class EditPostDialog extends NewPostDialog {
 			public void onClick(ClickEvent event) {
 				if (newPostFormIsOK()) {
 					Post p = getTextBoxValues();
-					p.setPoster(oldAuthor);
+					p.setAuthor(oldAuthor);
 					fixUpdateSection(p, currentUser);
 					p.setDate(oldDate);
 					async.editPost(oldId, p,
-							new AsyncCallback<Void>() {
+							new AsyncCallback<Long>() {
 								@Override
 								public void onFailure(Throwable caught) {
 									Window.alert("PostsPanel.editPost failed \n"
 											+ caught);
 								}
 								@Override
-								public void onSuccess(Void result) {
+								public void onSuccess(Long result) {
 									hide();
 								}
 							});

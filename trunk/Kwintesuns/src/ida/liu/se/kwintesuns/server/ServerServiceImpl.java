@@ -12,6 +12,7 @@ import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.NotFoundException;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyService;
@@ -105,9 +106,9 @@ ServerService {
 		
         if (post != null) {
         	if (userService.isUserLoggedIn())
-        		post.setPoster(userService.getCurrentUser().getNickname());
+        		post.setAuthor(userService.getCurrentUser().getNickname());
         	else
-        		post.setPoster("Anonymous");
+        		post.setAuthor("Anonymous");
     		post.setDate(new Date());
         	ofy.put(post);
         } 
@@ -132,26 +133,34 @@ ServerService {
 	}
 
 	// Update a post stored in the datastore
-	public void editPost(Long oldPostId, Post updatedPost) throws NotFoundException {
-		
-		if (updatedPost != null) {
-			Post p;
-			try {
-				p = ofy.get(Post.class, oldPostId);
-			} catch (NotFoundException e) {
-				// Don't continue if the old post wasn't found 
-				throw e;
-			}
-			deletePost(p.getId());
-
-			ofy.put(updatedPost);
-			
-			// Re-link all comments to the updated post
-			ArrayList<Comment> commentList = getComments(oldPostId);
-	        for (Comment c : commentList) {
-				updatePostLink(c.getId(), updatedPost.getId());
-	        }
+	public Long editPost(Long oldPostId, Post updatedPost) throws NotFoundException {
+		Post oldPost;
+		try {
+			oldPost = ofy.get(Post.class, oldPostId);
+		} catch (NotFoundException e) {
+			// Don't continue if the old post wasn't found 
+			throw e;
 		}
+
+		// Store the new post in the datastore
+		Key<Post> updatedKey = ofy.put(updatedPost);
+		// When being stored in the datastore it will get its id
+		try {
+			updatedPost = ofy.get(updatedKey);
+		} catch (NotFoundException e) {
+			// Don't continue if the updated post wasn't found 
+			throw e;
+		}
+		
+		// Re-link all comments to the updated post
+		ArrayList<Comment> commentList = getComments(oldPost.getId());
+        for (Comment c : commentList) {
+			updatePostLink(c.getId(), updatedPost.getId());
+        }
+        
+        deletePost(oldPost.getId());
+        
+        return updatedPost.getId(); 
 	}
 
 	// Returns all posts
@@ -216,20 +225,21 @@ ServerService {
     	
     	// Update the date of the post which the comment belongs to 
     	// to match the latest activity
-		Post updatedPost = oldPost;
+		Post updatedPost = new Post(oldPost.getTitle(),
+				oldPost.getType(), oldPost.getDescription(), 
+				oldPost.getPicture(), oldPost.getText());
     	updatedPost.setDate(new Date());
-    	editPost(postId, updatedPost);
-    	
-    	// Check if the edit worked
+    	updatedPost.setAuthor(oldPost.getAuthor());
+    	Long updatedPostId; 
     	try {
-	    	updatedPost = ofy.get(Post.class, postId);
+    		updatedPostId = editPost(postId, updatedPost);
     	} catch (NotFoundException e) {
     		// Don't continue if the edit failed
     		return;
     	}
     	
-		Comment comment = new Comment(text, postId);
-    	comment.setDate(updatedPost.getDate());    	
+		Comment comment = new Comment(text, updatedPostId);
+    	comment.setDate(updatedPost.getDate());
     	if (userService.isUserLoggedIn())
     		comment.setAuthor(userService.getCurrentUser().getNickname());
     	else
@@ -272,15 +282,18 @@ ServerService {
 	
 	// Make sure that the comments are linked to the correct post
 	private void updatePostLink(Long commentId, Long newPostId) {
-		Comment c;
+		Comment oldComment;
 		try {
-			c = ofy.get(Comment.class, commentId);
+			oldComment = ofy.get(Comment.class, commentId);
 		} catch (NotFoundException e) {
 			// Don't continue if a comment with that id wasn't found
 			return;
 		}
-		ofy.delete(c);
-		c.setPostId(newPostId);
-		ofy.put(c);
+		Comment newComment = 
+				new Comment(oldComment.getText(), newPostId);
+		newComment.setAuthor(oldComment.getAuthor());
+		newComment.setDate(oldComment.getDate());
+		ofy.delete(oldComment);
+		ofy.put(newComment);
 	}
 }

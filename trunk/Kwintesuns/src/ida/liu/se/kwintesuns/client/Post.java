@@ -41,8 +41,8 @@ public class Post implements IsSerializable {
 	}
 
 	// should only be called from the serverside
-	public void setPoster(String poster) {
-		this.author = poster;
+	public void setAuthor(String author) {
+		this.author = author;
 	}
 
 	// should only be called from the serverside
