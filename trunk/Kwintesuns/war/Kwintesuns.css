@@ -1,19 +1,18 @@
 /** Add css rules here for your application. */
 
 .topPanel {
-	background-color: teal;
+	background-color			: 	teal;
 }
 
 .bgStyle {
-	background-color: #F2F2F2;
+	background-color			: 	#F2F2F2;
 }
 
 .redBG {
-	background-color: red;
+	background-color			: 	red;
 }
-
 .yellowBG {
-	background-color: yellow;
+	background-color			: 	yellow;
 }
 
 
@@ -54,16 +53,22 @@
 }
 
 .topBannerText {	
-	color: #FAFAFA;
-	font-weight: bold;
+	color						: 	#FAFAFA;
+	font-weight					: 	bold;
 }
-
 .postTitle {
-	font-weight: bold;
-	font-size: 14pt;
+	color						:	black;
+	font-weight					: 	bold;
+	font-size					: 	14pt;
 }
 .postDescription {
-	font-size: 12pt;
+	color						:	black;
+	font-style					:	italic;
+	font-size					: 	10pt;
+}
+.postSmall {
+	color						: 	#cecece;
+	font-size					:	8pt;
 }
 
 .postItem {
@@ -72,48 +77,68 @@
     border-left					:	2px solid #d0d0d0;
 }
 .commentItem {
-    border-top					:	2px solid #d0d0d0;
+    background-color			:	#F9F9F9;
+    border-left					:	2px solid #d0d0d0;
+}
+
+.commentPanel {
+	padding						:	2px 2px 2px 2px;
+    border						:	1px solid #cecece;
+    border-top					:	1px solid #d0d0d0;
+    border-left					:	0px solid #d0d0d0;
+}
+.postPanel {
+	padding						:	2px 2px 2px 0px;
+    border						:	1px solid #cecece;
+    border-top					:	1px solid #d0d0d0;
+    border-left					:	1px solid #d0d0d0;
 }
 
 .headerStyle {
-	border: 5px solid teal;
-	font-size: 24pt;
-	font-weight: bold;
-	font-family: Arial;
-	color: #FAFAFA;
-	cursor: hand;
-	cursor: pointer;
+	border						: 	5px solid teal;
+	font-size					: 	24pt;
+	font-weight					: 	bold;
+	font-family					: 	Arial;
+	color						: 	#FAFAFA;
+	cursor						: 	hand;
+	cursor						: 	pointer;
 }
 
 .dialogPanel {
-  margin: 5px;
-  position: relative;
-  overflow: scroll;
+	margin						: 	5px;
+ 	position					: 	relative;
+ 	overflow					: 	scroll;
 }
 
 textarea {
-    resize: none;
+    resize						: 	none;
 }
 
 /** Set ids using widget.getElement().setId("idOfElement") */
 #closeButton {
-  margin: 15px 6px 6px;
+  	margin						: 	15px 6px 6px;
 }
 /** Set ids using widget.getElement().setId("idOfElement") */
 #sendButton {
-  margin: 15px 6px 6px;
+  	margin						: 	15px 6px 6px;
 }
 
 .updateButton {
-    background-color			:	green;
+    cursor						:	hand;
+	cursor						: 	pointer;
+	border						: 	none;
+    background-image			:	url('img/update.png');
     padding						:	0 0 0 0;
 }
 
 .removeButton {
-    background-color			:	red;
+    cursor						:	hand;
+	cursor						: 	pointer;
+	border						: 	none;
+    background-image			:	url('img/remove.gif');
     padding						:	0 0 0 0;
 }
 
 .watermark {
-   color: DarkGray;
+   color						:	DarkGray;
 }

@@ -11,6 +11,7 @@ import com.google.gwt.event.logical.shared.CloseEvent;
 import com.google.gwt.event.logical.shared.CloseHandler;
 import com.google.gwt.event.logical.shared.OpenEvent;
 import com.google.gwt.event.logical.shared.OpenHandler;
+import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
@@ -33,7 +34,8 @@ public class PostsPanel extends ScrollPanel{
 	private FlexTable postsTable = new FlexTable();
 	private CommentPanel commentPanel;
 	private final NewPostDialog newPostDialog = new NewPostDialog();
-	private final ServerServiceAsync async = GWT.create(ServerService.class);
+	private final ServerServiceAsync async = 
+			GWT.create(ServerService.class);
 
 	// mapping post types with their default image urls
 	private static final Map<String, String> defaultTypeImageUrls;
@@ -46,8 +48,10 @@ public class PostsPanel extends ScrollPanel{
 		defaultTypeImageUrls.put("error", "img/error.png");
 	}
 	
-	// Used when checking whether to display the remove and edit buttons
-	private AsyncCallback<MyUser> checkUserCallback = new AsyncCallback<MyUser>() {
+	// userIsAdmin and currentUser is used when checking whether 
+	// to display the remove and edit buttons
+	private AsyncCallback<MyUser> checkUserCallback = 
+			new AsyncCallback<MyUser>() {
 		@Override
 		public void onFailure(Throwable caught) {
 			Window.alert("PostsPanel.checkUserCallback failed \n"
@@ -63,7 +67,8 @@ public class PostsPanel extends ScrollPanel{
     };
 	
     // Used for EditPostDialog and NewPostDialog
-    private CloseHandler<PopupPanel> dialogCloseHandler = new CloseHandler<PopupPanel>() {
+    private CloseHandler<PopupPanel> dialogCloseHandler = 
+    		new CloseHandler<PopupPanel>() {
 		@Override
 		public void onClose(CloseEvent<PopupPanel> event) {initPosts();}
 	};
@@ -74,7 +79,8 @@ public class PostsPanel extends ScrollPanel{
 		postsTable.setWidth("100%");
 		add(postsTable);
 		
-		setWidth("100%");
+		setSize("100%", "100%");
+		setStyleName("postPanel");
 	}
 	
 	/**
@@ -107,7 +113,8 @@ public class PostsPanel extends ScrollPanel{
             new AsyncCallback<ArrayList<Post>>() {
 		        @Override
 		        public void onFailure(Throwable caught) {
-		      	  Window.alert("makePostList(String filterBy).fetchPosts failed \n"
+		      	  Window.alert("makePostList(String filterBy)." +
+		      	  		"fetchPosts failed \n"
 		                  + caught);
 		        }
 				@Override
@@ -126,6 +133,7 @@ public class PostsPanel extends ScrollPanel{
 		this.postList = postList;
         postsTable.removeAllRows();
 		if (!postList.isEmpty()) {
+	        async.getCurrentMyUser(checkUserCallback);
 	        //loop the array list and post getters to add 
 	        //records to the table
 			int row = 0;
@@ -134,7 +142,8 @@ public class PostsPanel extends ScrollPanel{
 	        	postsTable.setWidget(row, 0,
 	        			newPostItem(post, row));
 	        }
-	        DisclosurePanel first = (DisclosurePanel) postsTable.getWidget(0, 0);
+	        DisclosurePanel first = 
+	        		(DisclosurePanel) postsTable.getWidget(0, 0);
 	        first.setOpen(true);
 		}
 	}
@@ -157,6 +166,7 @@ public class PostsPanel extends ScrollPanel{
 				selectedPost = row;
 				compressNonSelectedPostItems();
 				// Show the comments for the selected post
+				commentPanel.setUserIsAdmin(userIsAdmin);
 				commentPanel.showComments(post.getId());
 			}
 		});
@@ -210,36 +220,46 @@ public class PostsPanel extends ScrollPanel{
 	private FlexTable makeContentItem(Post post) {
 
 		FlexTable contentItem = new FlexTable();
+		Label updateLabel = new Label(post.getUpdate());
+		Label dateLabel = new Label(DateTimeFormat
+				.getFormat("yyyy-MM-dd HH:mm:ss").format(post.getDate()));
+		Label authorLabel = new Label("by: " + post.getAuthor());
+		updateLabel.setStyleName("postSmall");
+		dateLabel.setStyleName("postSmall");
+		authorLabel.setStyleName("postSmall");
+		
 		contentItem.getCellFormatter().setAlignment(0, 3,
 				HasHorizontalAlignment.ALIGN_RIGHT,
 				HasVerticalAlignment.ALIGN_TOP);
-		contentItem.getColumnFormatter().setWidth(2, "55%");
+		contentItem.getColumnFormatter().setWidth(2, "80%");
 		contentItem.getColumnFormatter().setWidth(3, "20%");
-		contentItem.setText(0, 3, "by: " + post.getAuthor());
-		contentItem.setText(1, 2, post.getText());
+		
+		contentItem.setWidget(0, 3, authorLabel);
+		contentItem.setText(0, 2, post.getText());
+		contentItem.setWidget(1, 2, updateLabel);
+		
 		contentItem.getCellFormatter().setAlignment(1, 3, 
 				HasHorizontalAlignment.ALIGN_RIGHT,
 				HasVerticalAlignment.ALIGN_BOTTOM);
-		contentItem.setText(1, 3, post.getDate().toString());
+		
+		contentItem.setWidget(1, 3, dateLabel);
 		
 		// if the current user is a admin, show the remove button
-        async.getCurrentMyUser(checkUserCallback);
         if (userIsAdmin) {
     		Button removeButton = makeRemoveButton(post.getId());
+        	contentItem.getCellFormatter().setAlignment(0, 4, 
+    				HasHorizontalAlignment.ALIGN_RIGHT,
+    				HasVerticalAlignment.ALIGN_TOP);
+        	
         	contentItem.setWidget(0, 4, removeButton);
         }
 		// if the current user is the author of the selected post or if he
         // is a admin, show the update button
-        if (currentUser == post.getAuthor() || userIsAdmin) {
+        if (currentUser.equals(post.getAuthor()) || userIsAdmin) {
         	Button updateButton = makeUpdateButton(post);
-        	contentItem.getColumnFormatter().setWidth(2, "50%");
-        	contentItem.getColumnFormatter().setWidth(4, "5%");
-        	contentItem.getCellFormatter().setAlignment(0, 4, 
-    				HasHorizontalAlignment.ALIGN_RIGHT,
-    				HasVerticalAlignment.ALIGN_TOP);
         	contentItem.getCellFormatter().setAlignment(1, 4, 
     				HasHorizontalAlignment.ALIGN_RIGHT,
-    				HasVerticalAlignment.ALIGN_TOP);
+    				HasVerticalAlignment.ALIGN_BOTTOM);
     		
         	contentItem.setWidget(1, 4, updateButton);
         }
@@ -256,7 +276,8 @@ public class PostsPanel extends ScrollPanel{
 		for (int row = 0; row < postList.size(); row++) {
 			// compress all except for selected
         	if ((row != selectedPost) && postsTable.isCellPresent(row, 0)) {
-        		((DisclosurePanel) postsTable.getWidget(row, 0)).setOpen(false);
+        		((DisclosurePanel) postsTable.getWidget(row, 0))
+        			.setOpen(false);
 			} else {
 				// don't compress the selected post
 			}
@@ -277,7 +298,8 @@ public class PostsPanel extends ScrollPanel{
 	 * @param post is needed to determine old values
 	 */
 	private void editPostDialog(Post post) {
-		EditPostDialog newEditDialog = new EditPostDialog(post);
+		EditPostDialog newEditDialog = 
+				new EditPostDialog(post, currentUser);
 		newEditDialog.show();
 		newEditDialog.center();		
 		newEditDialog.addCloseHandler(dialogCloseHandler);
@@ -303,7 +325,7 @@ public class PostsPanel extends ScrollPanel{
 	private Button makeUpdateButton(final Post post) {
 		
 		Button b = new Button();
-		b.setSize("17px", "17px");
+		b.setSize("16px", "16px");
 		b.setStyleName("updateButton");
 		b.addClickHandler(new ClickHandler() {			
 			@Override
@@ -322,7 +344,7 @@ public class PostsPanel extends ScrollPanel{
 	private Button makeRemoveButton(final Long postId) {
 		
 		Button b = new Button();
-		b.setSize("17px", "17px");
+		b.setSize("16px", "16px");
 		b.setStyleName("removeButton");
 		b.addClickHandler(new ClickHandler() {			
 			@Override
@@ -331,8 +353,8 @@ public class PostsPanel extends ScrollPanel{
 						new AsyncCallback<Void>() {
 							@Override
 							public void onFailure(Throwable caught) {
-								Window.alert("PostsPanel.deletePost failed \n"
-										+ caught);
+								Window.alert("PostsPanel.deletePost " +
+										"failed \n" + caught);
 							}
 							@Override
 							public void onSuccess(Void result) {
