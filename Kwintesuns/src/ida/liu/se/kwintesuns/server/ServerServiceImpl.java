@@ -27,8 +27,8 @@ ServerService {
 	private UserService userService = UserServiceFactory.getUserService();
     private Objectify ofy = ObjectifyService.begin();
 
-	//The Objectify service for the entity must be registered before any 
-    //operations can be executed
+	// The Objectify service for the entity must be registered before any 
+    // operations can be executed
 	static {
         ObjectifyService.register(MyUser.class);
 		ObjectifyService.register(Post.class);
@@ -39,8 +39,9 @@ ServerService {
 	 * 	-------------------------------------MyUser services----------------------------------
 	 */
 	
-	// returns the user, if he or she is logged in
+	// Returns the user, if he or she is logged in
 	public MyUser getCurrentMyUser() {
+		
         User user = userService.getCurrentUser(); // or req.getUserPrincipal()
         if (user != null)
     		return makeMyUser(user);
@@ -48,8 +49,9 @@ ServerService {
         	return null;
 	}
 
-	// add user to the database if it's not already there
+	// Add user to the database if it's not already there
 	private MyUser makeMyUser(User user) {
+		
 		if (userService.isUserLoggedIn()) {
 			MyUser myUser = new MyUser(user.getNickname(), userService.isUserAdmin());
 			if(userIsNew(user))
@@ -60,9 +62,10 @@ ServerService {
 		}
 	}
 
-	// check if the user is new - if the user is new, 
+	// Check if the user is new - if the user is new, 
 	// it will not exist in the datastore
 	private boolean userIsNew(User user) {
+		
 		try {
 			ofy.get(MyUser.class, user.getFederatedIdentity());
 		} catch (IllegalArgumentException e) {
@@ -71,7 +74,7 @@ ServerService {
 		return false;
 	}
 
-	//add subscription and update the user in the datastore
+	// Add subscription and update the user in the datastore
 	public void subscribe(String emailToSubscribeTo) {
 		
 		MyUser u = getCurrentMyUser();
@@ -82,7 +85,7 @@ ServerService {
 		}
 	}
 	
-	//remove subscription and update the user in the datastore
+	// Remove subscription and update the user in the datastore
 	public void unsubscribe(String emailToUnsubscribeFrom) {
 		
 		MyUser u = getCurrentMyUser();
@@ -97,7 +100,7 @@ ServerService {
 	 * 	-------------------------------------Post services----------------------------------
 	 */
 	
-	// store a new post in the datastore
+	// Store a new post in the datastore
 	public void storePost(Post post) {
 		
         if (post != null) {
@@ -110,57 +113,70 @@ ServerService {
         } 
 	}
 
-	// delete a post stored in the datastore
-	public void deletePost(Long postId) throws NullPointerException {
+	// Delete a post stored in the datastore
+	public void deletePost(Long postId) throws NotFoundException {
+		
+		Post p;
 		try {
-			ofy.delete(Post.class, postId);
-		} catch (NullPointerException e) {
+			p = ofy.get(Post.class, postId);
+		} catch (NotFoundException e) {
 			throw e;
 		}
+		ofy.delete(p);
+		
+		// Delete all comments linked to the deleted post
+		ArrayList<Comment> commentList = getComments(postId);
+        for (Comment c : commentList) {
+        	deleteComment(c.getId());
+        }
 	}
 
-	// update a post stored in the datastore
-	public void editPost(Long oldPostId, Post updatedPost) throws NullPointerException {
+	// Update a post stored in the datastore
+	public void editPost(Long oldPostId, Post updatedPost) throws NotFoundException {
+		
 		if (updatedPost != null) {
+			Post p;
 			try {
-				Post p = ofy.get(Post.class, oldPostId);
-				deletePost(p.getId());
-			} catch (NullPointerException e) {
+				p = ofy.get(Post.class, oldPostId);
+			} catch (NotFoundException e) {
+				// Don't continue if the old post wasn't found 
 				throw e;
 			}
+			deletePost(p.getId());
 
 			ofy.put(updatedPost);
 			
-			// relink all comments to the updated post
+			// Re-link all comments to the updated post
 			ArrayList<Comment> commentList = getComments(oldPostId);
 	        for (Comment c : commentList) {
-				updatePostLink(c.getCommentId(), updatedPost.getId());	        	
+				updatePostLink(c.getId(), updatedPost.getId());
 	        }
 		}
 	}
 
-	// returns all posts
+	// Returns all posts
 	public ArrayList<Post> getAllPosts() {		
 		
 		// sorts the query by date in descending order
 		Iterable<com.googlecode.objectify.Key<Post>> allKeys = 
 				ofy.query(Post.class).order("-date").fetchKeys();
 		ArrayList<Post> posts = new ArrayList<Post>();
+		Post p;
 		
 		// loop through the query result and add to the array
-		Post p;
 		for (com.googlecode.objectify.Key<Post> k : allKeys) {
 			try {
 				p = ofy.get(k);
-				posts.add(p);
 			} catch (NotFoundException e) {
-				//this entry was probably just removed - skip it
+				//this entry was probably recently removed - skip it
+				continue;
 			}
+			posts.add(p);
 		}		
 		return posts;
 	}
 	
-	// returns all posts that fit the filter
+	// Returns all posts that fit the filter
 	public ArrayList<Post> fetchPosts(String filterBy, ArrayList<String> filter) {	
 		
 		Query<Post> q = null;
@@ -170,12 +186,13 @@ ServerService {
 			try {
 				// sorts the query by date in descending order
 				q = ofy.query(Post.class).filter(filterBy, filter.get(i)).order("-date");
-				// Loop through the query results and add to the array
-				for (Post fetched : q)
-					posts.add(fetched);
 			} catch (NullPointerException e) {
 				// the query didn't find any matching posts for this filter - skip it
+				continue;
 			}
+			// Loop through the query results and add to the array
+			for (Post fetched : q)
+				posts.add(fetched);
 		}
 		return posts;
 	}
@@ -184,46 +201,86 @@ ServerService {
 	 * 	-------------------------------------Comment services----------------------------------
 	 */
 	
-	// store a new comment in the datastore
-	public void storeComment(Comment comment) {     
+	// Store a new comment in the datastore
+	public void storeComment(String text, Long postId) {
 		
-        if (comment != null) {
-        	if (userService.isUserLoggedIn())
-        		comment.setAuthor(userService.getCurrentUser().getNickname());
-        	else
-        		comment.setAuthor("Anonymous");
-        	comment.setDate(new Date());
-        	ofy.put(comment);
-        } 
+		Post oldPost;
+		// Check if the comment is linked to a existing post
+    	try {
+	    	oldPost = ofy.get(Post.class, postId);
+    	} catch (NotFoundException e) {
+    		// If the comment isn't linked to any existing post
+    		// don't continue
+    		return;
+    	}
+    	
+    	// Update the date of the post which the comment belongs to 
+    	// to match the latest activity
+		Post updatedPost = oldPost;
+    	updatedPost.setDate(new Date());
+    	editPost(postId, updatedPost);
+    	
+    	// Check if the edit worked
+    	try {
+	    	updatedPost = ofy.get(Post.class, postId);
+    	} catch (NotFoundException e) {
+    		// Don't continue if the edit failed
+    		return;
+    	}
+    	
+		Comment comment = new Comment(text, postId);
+    	comment.setDate(updatedPost.getDate());    	
+    	if (userService.isUserLoggedIn())
+    		comment.setAuthor(userService.getCurrentUser().getNickname());
+    	else
+    		comment.setAuthor("Anonymous");
+    	ofy.put(comment);
 	}
 
-	// delete a comment from the datastore
-	public void deleteComment(Long commentId) {
-		ofy.delete(Comment.class, commentId);
+	// Delete a comment from the datastore
+	public void deleteComment(Long commentId) throws NotFoundException {
+		Comment c;
+		try {
+			c = ofy.get(Comment.class, commentId);
+		} catch (NotFoundException e) {
+			throw e;
+		}
+		ofy.delete(c);
 	}
 
-	// returns all comments belonging to the post with postId
+	// Returns all comments belonging to the post with postId
 	public ArrayList<Comment> getComments(Long postId) {
 
-		// sorts the query by date in ascending order
+		// sorts the query by date in descending order
 		Iterable<com.googlecode.objectify.Key<Comment>> allKeys = 
-				ofy.query(Comment.class).filter("postId", postId).order("date").fetchKeys();
+				ofy.query(Comment.class).filter("postId", postId).order("-date").fetchKeys();
 		ArrayList<Comment> comments = new ArrayList<Comment>();
+		Comment c;
 
 		//Loop through the query results and add to the array
 		for (com.googlecode.objectify.Key<Comment> k : allKeys) {
-			Comment c = ofy.get(k);
+			try {
+				c = ofy.get(k);
+			} catch (NotFoundException e) {
+				//this entry was probably recently removed - skip it
+				continue;
+			}
 			comments.add(c);
 		}		
 		return comments;
 	}
 	
+	// Make sure that the comments are linked to the correct post
 	private void updatePostLink(Long commentId, Long newPostId) {
-		Comment c = ofy.get(Comment.class, commentId);
-		if (c != null) {
-			deleteComment(c.getCommentId());
-			c.setCommentId(newPostId);
-			ofy.put(c);
+		Comment c;
+		try {
+			c = ofy.get(Comment.class, commentId);
+		} catch (NotFoundException e) {
+			// Don't continue if a comment with that id wasn't found
+			return;
 		}
+		ofy.delete(c);
+		c.setPostId(newPostId);
+		ofy.put(c);
 	}
 }

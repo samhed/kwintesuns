@@ -12,12 +12,12 @@ public interface ServerService extends RemoteService {
 	void unsubscribe(String emailToUnsubscribeFrom);
 	
 	void storePost(Post post);
-	void deletePost(Long postId) throws NullPointerException;
-	void editPost(Long postId, Post updatedPost) throws NullPointerException;
+	void deletePost(Long postId);
+	void editPost(Long postId, Post updatedPost);
 	ArrayList<Post> getAllPosts();
 	ArrayList<Post> fetchPosts(String filterBy, ArrayList<String> filter);
 	
-	void storeComment(Comment comment);
+	void storeComment(String text, Long postId);
 	void deleteComment(Long commentId);
 	ArrayList<Comment> getComments(Long postId);
 }

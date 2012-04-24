@@ -11,20 +11,20 @@ import com.google.gwt.user.client.rpc.IsSerializable;
 public class Comment implements IsSerializable {
 	
 	@Id
-	Long id;
+	private Long id;
 
 	// poster and date is set when the post is stored in the database
 	private String author;
 	private String text;
 	private Date date;
-	private Long commentId;
+	private Long postId;
 
 	public Comment() {}
 
 	// should only be called from the serverside
-	public Comment(String txt, Long cid) {
+	public Comment(String txt, Long pid) {
 		this.text = txt;
-		this.commentId = cid;
+		this.postId = pid;
 	}
 
 	// should only be called from the serverside
@@ -38,8 +38,8 @@ public class Comment implements IsSerializable {
 	}
 
 	// should only be called from the serverside
-	public void setCommentId(Long commentId) {
-		this.commentId = commentId;
+	public void setPostId(Long commentId) {
+		this.postId = commentId;
 	}
 	
 	public String getText() {
@@ -54,7 +54,11 @@ public class Comment implements IsSerializable {
 		return author;
 	}
 
-	public Long getCommentId() {
-		return commentId;
+	public Long getPostId() {
+		return postId;
+	}
+
+	public Long getId() {
+		return id;
 	}
 }

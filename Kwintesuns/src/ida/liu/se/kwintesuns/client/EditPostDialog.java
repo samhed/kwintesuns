@@ -26,9 +26,10 @@ public class EditPostDialog extends NewPostDialog {
 	
 	private final ServerServiceAsync async = GWT.create(ServerService.class);
 	
-	public EditPostDialog(final Post oldPost) {
+	public EditPostDialog(final Post oldPost, final String currentUser) {
 
 		setText("Update post");
+		setGlassEnabled(true);
 		setAnimationEnabled(true);
 		
 		// We can set the id of a widget by accessing its Element
@@ -36,25 +37,25 @@ public class EditPostDialog extends NewPostDialog {
 		updateButton.getElement().setId("sendButton");
 		addItemToDialogPanel(updateButton, 15, 440);
 		addItemToDialogPanel(closeButton, 510, 440);
-		
+				
+		fixBoxes();
+		fixLayout();
+
 		getOldValues(oldPost);
 		
-		if (oldType == "video")
+		if (oldType.equals("video"))
 			setTypeBoxSelected(0);
-		else if (oldType == "picture")
+		else if (oldType.equals("picture"))
 			setTypeBoxSelected(1);
-		else if (oldType == "news")
+		else if (oldType.equals("news"))
 			setTypeBoxSelected(2);
-		else if (oldType == "thought")
+		else if (oldType.equals("thought"))
 			setTypeBoxSelected(3);
 		
 		setTitleText(oldTitle);
 		setPictureText(oldPicture);
 		setDescriptionText(oldDescription);
 		setTextBoxText(oldText);
-		
-		fixBoxes();
-		fixLayout();
 		
 		addUpdateSection();
 		setUpdateText(oldUpdate);
@@ -73,9 +74,7 @@ public class EditPostDialog extends NewPostDialog {
 				if (newPostFormIsOK()) {
 					Post p = getTextBoxValues();
 					p.setPoster(oldAuthor);
-					p.setUpdate(getUpdateBoxValue() + "\n Updated by "
-							+ " at: "
-							+ new Date().toString());
+					fixUpdateSection(p, currentUser);
 					p.setDate(oldDate);
 					async.editPost(oldId, p,
 							new AsyncCallback<Void>() {
@@ -95,6 +94,19 @@ public class EditPostDialog extends NewPostDialog {
 				}
 			}
 		});
+	}
+	
+	private void fixUpdateSection(Post p, String currentUser) {
+		if (getUpdateBoxValue().equals("Max 300 characters") || 
+				getUpdateBoxValue().equals("")) {
+			p.setUpdate(getUpdateBoxValue() + "\n Updated by "
+					+ currentUser + " at: "
+					+ new Date().toString());
+		} else {
+			p.setUpdate("Updated by "
+					+ currentUser + " at: "
+					+ new Date().toString());
+		}
 	}
 	
 	private void getOldValues(Post post) {

@@ -32,7 +32,7 @@ public class NewPostDialog extends DialogBox {
 	
 	private Label titleLabel = new Label("Title:");
 	private Label typeLabel = new Label("Type:");
-	private Label descriptionLabel = new Label("Description (Max 140 characters):");
+	private Label descriptionLabel = new Label("Description (Max 100 characters):");
 	private Label pictureLabel = new Label("Picture (leave empty for default):");
 	private Label textLabel = new Label("Text (Max 600 characters):");
 	private Label updateLabel = new Label("Update:");
@@ -42,6 +42,7 @@ public class NewPostDialog extends DialogBox {
 	public NewPostDialog() {
 
 		setText("New post");
+		setGlassEnabled(true);		
 		setAnimationEnabled(true);
 		
 		// We can set the id of a widget by accessing its Element
@@ -79,13 +80,14 @@ public class NewPostDialog extends DialogBox {
 					});
 				} else {
 					Window.alert("Too long text (Max 600 characters) or \n" +
-							"description (Max 140 characters).");
+							"description (Max 100 characters).");
 				}
 			}
 		});
 	}
 	
-	public void fixBoxes() {		
+	public void fixBoxes() {
+		typeBox.clear();	
 		typeBox.addItem("video");
 		typeBox.addItem("picture");
 		typeBox.addItem("news");
@@ -97,9 +99,9 @@ public class NewPostDialog extends DialogBox {
 		pictureBox.setMaxLength(200);
 		pictureBox.setWidth("170px");
 		descriptionBox.setSize("546px", "67px");
-		descriptionBox.setWatermark("Max 140 characters");
-		descriptionBox.setCharLimit(140); //for firefox
-		descriptionBox.getElement().setAttribute("maxlength", "140"); //for chrome
+		descriptionBox.setWatermark("Max 100 characters");
+		descriptionBox.setCharLimit(100); //for firefox
+		descriptionBox.getElement().setAttribute("maxlength", "100"); //for chrome
 		textBox.setSize("546px", "220px");
 		textBox.setWatermark("Max 600 characters");
 		textBox.setCharLimit(600); //for firefox

@@ -10,12 +10,12 @@ public interface ServerServiceAsync {
 	void unsubscribe(String emailToUnsubscribeFrom, AsyncCallback<Void> asyncCallback);
 
 	void storePost(Post post, AsyncCallback<Void> asyncCallback);
-	void deletePost(Long postId, AsyncCallback<Void> asyncCallback);
+	void deletePost(Long postId, AsyncCallback<Void> asyncCallback); 
 	void editPost(Long postId, Post updatedPost, AsyncCallback<Void> asyncCallback);
 	void getAllPosts(AsyncCallback<ArrayList<Post>> asyncCallback); 
 	void fetchPosts(String filterBy, ArrayList<String> filter, AsyncCallback<ArrayList<Post>> asyncCallback);
 	
-	void storeComment(Comment comment, AsyncCallback<Void> asyncCallback);
+	void storeComment(String text, Long postId, AsyncCallback<Void> asyncCallback);
 	void deleteComment(Long commentId, AsyncCallback<Void> asyncCallback);
 	void getComments(Long postId, AsyncCallback<ArrayList<Comment>> asyncCallback);
 }
