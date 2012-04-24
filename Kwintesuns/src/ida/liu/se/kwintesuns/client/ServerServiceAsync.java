@@ -11,7 +11,7 @@ public interface ServerServiceAsync {
 
 	void storePost(Post post, AsyncCallback<Void> asyncCallback);
 	void deletePost(Long postId, AsyncCallback<Void> asyncCallback); 
-	void editPost(Long postId, Post updatedPost, AsyncCallback<Void> asyncCallback);
+	void editPost(Long postId, Post updatedPost, AsyncCallback<Long> asyncCallback);
 	void getAllPosts(AsyncCallback<ArrayList<Post>> asyncCallback); 
 	void fetchPosts(String filterBy, ArrayList<String> filter, AsyncCallback<ArrayList<Post>> asyncCallback);
 	

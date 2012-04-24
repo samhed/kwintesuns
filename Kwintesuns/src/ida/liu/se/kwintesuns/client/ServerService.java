@@ -13,7 +13,7 @@ public interface ServerService extends RemoteService {
 	
 	void storePost(Post post);
 	void deletePost(Long postId);
-	void editPost(Long postId, Post updatedPost);
+	Long editPost(Long postId, Post updatedPost);
 	ArrayList<Post> getAllPosts();
 	ArrayList<Post> fetchPosts(String filterBy, ArrayList<String> filter);
 	
