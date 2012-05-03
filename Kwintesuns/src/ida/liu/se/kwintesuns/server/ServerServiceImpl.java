@@ -8,6 +8,7 @@ import ida.liu.se.kwintesuns.client.MyUser;
 import ida.liu.se.kwintesuns.client.ServerService;
 import ida.liu.se.kwintesuns.client.Post;
 
+import com.google.appengine.api.datastore.DatastoreNeedIndexException;
 import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
@@ -70,7 +71,9 @@ ServerService {
 		try {
 			ofy.get(MyUser.class, user.getFederatedIdentity());
 		} catch (IllegalArgumentException e) {
-			return true; //user not found
+			return true; //name cannot be null or empty
+		} catch (NotFoundException e) {
+			return true; //user not found			
 		}
 		return false;
 	}
@@ -102,7 +105,7 @@ ServerService {
 	 */
 	
 	// Store a new post in the datastore
-	public void storePost(Post post) {
+	public Long storePost(Post post) {
 		
         if (post != null) {
         	if (userService.isUserLoggedIn())
@@ -110,14 +113,19 @@ ServerService {
         	else
         		post.setAuthor("Anonymous");
     		post.setDate(new Date());
-        	ofy.put(post);
-        } 
+    		try {
+    			return ofy.put(post).getId();
+    		} catch (NotFoundException e) {
+    			return null;
+    		}        	
+        }
+        return null;
 	}
 
 	// Delete a post stored in the datastore
 	public void deletePost(Long postId) throws NotFoundException {
 		
-		Post p;
+		Post p = null;
 		try {
 			p = ofy.get(Post.class, postId);
 		} catch (NotFoundException e) {
@@ -126,7 +134,7 @@ ServerService {
 		ofy.delete(p);
 		
 		// Delete all comments linked to the deleted post
-		ArrayList<Comment> commentList = getComments(postId);
+		ArrayList<Comment> commentList = getComments(p.getId());
         for (Comment c : commentList) {
         	deleteComment(c.getId());
         }
@@ -195,7 +203,7 @@ ServerService {
 			try {
 				// sorts the query by date in descending order
 				q = ofy.query(Post.class).filter(filterBy, filter.get(i)).order("-date");
-			} catch (NullPointerException e) {
+			} catch (DatastoreNeedIndexException e) {
 				// the query didn't find any matching posts for this filter - skip it
 				continue;
 			}
@@ -211,7 +219,7 @@ ServerService {
 	 */
 	
 	// Store a new comment in the datastore
-	public void storeComment(String text, Long postId) {
+	public Long storeComment(String text, Long postId) {
 		
 		Post oldPost;
 		// Check if the comment is linked to a existing post
@@ -220,10 +228,10 @@ ServerService {
     	} catch (NotFoundException e) {
     		// If the comment isn't linked to any existing post
     		// don't continue
-    		return;
+    		return null;
     	}
     	
-    	// Update the date of the post which the comment belongs to 
+    	// Update the date of the post which the comment belongs to
     	// to match the latest activity
 		Post updatedPost = new Post(oldPost.getTitle(),
 				oldPost.getType(), oldPost.getDescription(), 
@@ -235,7 +243,7 @@ ServerService {
     		updatedPostId = editPost(postId, updatedPost);
     	} catch (NotFoundException e) {
     		// Don't continue if the edit failed
-    		return;
+    		return null;
     	}
     	
 		Comment comment = new Comment(text, updatedPostId);
@@ -245,6 +253,7 @@ ServerService {
     	else
     		comment.setAuthor("Anonymous");
     	ofy.put(comment);
+    	return updatedPostId;
 	}
 
 	// Delete a comment from the datastore

@@ -1,2 +1,3 @@
 # Module kwintesuns
 # RPC service class, partial path of RPC policy file
+ida.liu.se.kwintesuns.client.ServerService, 5A57524DEE7F10C41752CDA5A2803468.gwt.rpc

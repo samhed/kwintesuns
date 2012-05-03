@@ -7,11 +7,9 @@ import javax.persistence.Id;
 
 import com.google.gwt.user.client.rpc.IsSerializable;
 
-@Entity
-public class Post implements IsSerializable {
+@Entity public class Post implements IsSerializable {
 	
-	@Id
-	Long id;
+	@Id	Long id;
 	
 	// poster and date is set when the post is stored in the database
 	private String author;
@@ -50,6 +48,11 @@ public class Post implements IsSerializable {
 		this.update = update;
 	}
 
+	// should only be used when making a temporary post
+	public void setId(Long id) {
+		this.id = id;
+	}
+	
 	public Long getId() {
 		return id;
 	}
