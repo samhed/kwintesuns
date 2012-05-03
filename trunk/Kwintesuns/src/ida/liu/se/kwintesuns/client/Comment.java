@@ -7,11 +7,9 @@ import javax.persistence.Id;
 
 import com.google.gwt.user.client.rpc.IsSerializable;
 
-@Entity
-public class Comment implements IsSerializable {
+@Entity public class Comment implements IsSerializable {
 	
-	@Id
-	private Long id;
+	@Id	private Long id;
 
 	// poster and date is set when the post is stored in the database
 	private String author;

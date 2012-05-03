@@ -1,10 +1,8 @@
 package ida.liu.se.kwintesuns.client;
 
 import com.google.gwt.core.client.EntryPoint;
-import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.FlexTable;
-import com.google.gwt.user.client.ui.HasHorizontalAlignment;
 import com.google.gwt.user.client.ui.HasVerticalAlignment;
 import com.google.gwt.user.client.ui.RootLayoutPanel;
 
@@ -14,10 +12,8 @@ import com.google.gwt.user.client.ui.RootLayoutPanel;
 public class Kwintesuns implements EntryPoint {
 	
 	private FlexTable mainPanel = new FlexTable();
-	private CommentPanel commentPanel = new CommentPanel();
-	private PostsPanel postsPanel = new PostsPanel(commentPanel);
-	private final TopPanel topPanel = new TopPanel(postsPanel);
-	private FlexTable contentGrid = new FlexTable();
+	private ContentPanel contentPanel = new ContentPanel();
+	private final TopPanel topPanel = new TopPanel(contentPanel);
 
 	/**
 	 * This is the entry point method.
@@ -32,33 +28,21 @@ public class Kwintesuns implements EntryPoint {
 		mainPanel.getCellFormatter().setHeight(0, 0, "90px");
 		mainPanel.getRowFormatter().setVerticalAlign(1, HasVerticalAlignment.ALIGN_TOP);
 		mainPanel.setCellSpacing(0);
-		
-		contentGrid.setSize("100%", "100%");
-		contentGrid.getFlexCellFormatter().setAlignment(0, 0, 
-				HasHorizontalAlignment.ALIGN_LEFT, 
-				HasVerticalAlignment.ALIGN_TOP);
-		contentGrid.getFlexCellFormatter().setAlignment(0, 1, 
-				HasHorizontalAlignment.ALIGN_LEFT, 
-				HasVerticalAlignment.ALIGN_TOP);
-		contentGrid.getColumnFormatter().setWidth(0, "50%");
-		
-		contentGrid.setWidget(0, 0, postsPanel);
-		contentGrid.setWidget(0, 1, commentPanel);
-		
+				
 		mainPanel.setWidget(0,0, topPanel);
-		mainPanel.setWidget(1,0, contentGrid);
+		mainPanel.setWidget(1,0, contentPanel);
 		
 		RootLayoutPanel.get().setStyleName("bgStyle");
 		RootLayoutPanel.get().add(mainPanel);
 		
-		postsPanel.initPosts();
+        topPanel.init();
+		contentPanel.init();
 
-		Timer t = new Timer(){
+        // schedule the timer to fire every second
+		/*Timer t = new Timer(){
             public void run() {
-                topPanel.refresh();
             }
         };
-        // schedule the timer to fire every second
-        t.scheduleRepeating(1000);
+        t.scheduleRepeating(1000);*/
 	}
 }

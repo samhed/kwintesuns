@@ -1,6 +1,8 @@
 package ida.liu.se.kwintesuns.client;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ChangeEvent;
+import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.Window;
@@ -20,7 +22,7 @@ import com.google.gwt.user.client.ui.Widget;
 public class NewPostDialog extends DialogBox {
 	
 	private final Button closeButton = new Button("Close");
-	private final Button sendButton = new Button("Post");
+	private final Button postButton = new Button("Post");
 	private AbsolutePanel dialogPanel = new AbsolutePanel();
 	
 	private TextBox titleBox = new TextBox();
@@ -34,8 +36,10 @@ public class NewPostDialog extends DialogBox {
 	private Label typeLabel = new Label("Type:");
 	private Label descriptionLabel = new Label("Description (Max 100 characters):");
 	private Label pictureLabel = new Label("Picture (leave empty for default):");
-	private Label textLabel = new Label("Text (Max 600 characters):");
+	private Label textLabel = new Label("Video url:");
 	private Label updateLabel = new Label("Update:");
+	
+	private Long newPostId = null; 
 	
 	private final ServerServiceAsync async = GWT.create(ServerService.class);
 	
@@ -47,8 +51,8 @@ public class NewPostDialog extends DialogBox {
 		
 		// We can set the id of a widget by accessing its Element
 		closeButton.getElement().setId("closeButton");
-		sendButton.getElement().setId("sendButton");
-		addItemToDialogPanel(sendButton, 15, 440);
+		postButton.getElement().setId("sendButton");
+		addItemToDialogPanel(postButton, 15, 440);
 		addItemToDialogPanel(closeButton, 510, 440);
 		
 		fixBoxes();
@@ -57,24 +61,27 @@ public class NewPostDialog extends DialogBox {
 		// Add a handler to close the NewPostDialog
 		closeButton.addClickHandler(new ClickHandler() {
 			public void onClick(ClickEvent event) {
+				newPostId = null;
 				hide();
 			}
 		});
 		
-		sendButton.setFocus(true);
+		postButton.setFocus(true);
 		// If the info is OK store the new post in the DB
-		sendButton.addClickHandler(new ClickHandler() {
+		postButton.addClickHandler(new ClickHandler() {
 			public void onClick(ClickEvent event) {
 				if (newPostFormIsOK()) {
 					Post p = getTextBoxValues();
-					async.storePost(p, new AsyncCallback<Void>() {
+					async.storePost(p, new AsyncCallback<Long>() {
 					    @Override
 					    public void onFailure(Throwable caught) {
+							newPostId = null;
 					        Window.alert(
 					        		"newPost().storePost failed \n" + caught);
 					    }
 					    @Override
-					    public void onSuccess(Void result) {
+					    public void onSuccess(Long result) {
+					    	newPostId = result;
 					    	hide();
 					    }
 					});
@@ -93,6 +100,18 @@ public class NewPostDialog extends DialogBox {
 		typeBox.addItem("news");
 		typeBox.addItem("thought");
 		typeBox.setVisibleItemCount(1);
+		typeBox.addChangeHandler(new ChangeHandler() {			
+			@Override
+			public void onChange(ChangeEvent event) {
+				int i = typeBox.getSelectedIndex();
+				if (i == 0)
+					textLabel.setText("Video url:");
+				else if (i == 1)
+					textLabel.setText("Picture url:");
+				else if ((i == 2) || (i == 3))
+					textLabel.setText("Text (Max 600 characters):");
+			}
+		});
 		
 		titleBox.setWidth("240px");
 		titleBox.setMaxLength(40);
@@ -181,5 +200,9 @@ public class NewPostDialog extends DialogBox {
 	
 	public void setUpdateText(String s) {
 		updateBox.setText(s);
+	}
+
+	public Long getNewPostId() {
+		return newPostId;
 	}
 }

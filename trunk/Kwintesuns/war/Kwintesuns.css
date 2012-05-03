@@ -123,11 +123,26 @@ textarea {
   	margin						: 	15px 6px 6px;
 }
 
+.updateItemButton {
+	border						: 	none;
+    cursor						:	hand;
+	cursor						: 	pointer;
+    background-image			:	url('img/updateItem.png');
+}
+
 .updateButton {
     cursor						:	hand;
 	cursor						: 	pointer;
 	border						: 	none;
     background-image			:	url('img/update.png');
+    padding						:	0 0 0 0;
+}
+
+.editButton {
+    cursor						:	hand;
+	cursor						: 	pointer;
+	border						: 	none;
+    background-image			:	url('img/edit.png');
     padding						:	0 0 0 0;
 }
 
@@ -137,6 +152,15 @@ textarea {
 	border						: 	none;
     background-image			:	url('img/remove.gif');
     padding						:	0 0 0 0;
+}
+
+.removeCommentButton {
+    cursor						:	hand;
+	cursor						: 	pointer;
+	border						: 	none;
+    background-image			:	url('img/remove.gif');
+    background-color			:	#F9F9F9;
+    padding						:	0 0 0 0;	
 }
 
 .watermark {

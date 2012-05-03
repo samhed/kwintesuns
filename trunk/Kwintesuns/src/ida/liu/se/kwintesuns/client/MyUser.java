@@ -7,11 +7,9 @@ import javax.persistence.Id;
 
 import com.google.gwt.user.client.rpc.IsSerializable;
 
-@Entity
-public class MyUser implements IsSerializable {
+@Entity public class MyUser implements IsSerializable {
 	
-	@Id 	
-	private String id;
+	@Id private String id;
 	private ArrayList<String> subscriptionList;
 	private boolean administrator;
 

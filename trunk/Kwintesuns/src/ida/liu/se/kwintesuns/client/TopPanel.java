@@ -8,6 +8,7 @@ import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.HasHorizontalAlignment;
 import com.google.gwt.user.client.ui.HasVerticalAlignment;
@@ -18,7 +19,7 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 
 public class TopPanel extends VerticalPanel {
 	
-	private PostsPanel postsPanel;
+	private ContentPanel postsPanel;
 	private Label header = new Label();
 	private Label loggedInLabel = new Label();
 	private MenuBar postMenu = new MenuBar();
@@ -35,21 +36,28 @@ public class TopPanel extends VerticalPanel {
 	//private Frame loginFrame = new Frame();
 	private final ServerServiceAsync async = GWT.create(ServerService.class);
 	
-	public TopPanel(final PostsPanel postsPanel) {
+	public TopPanel(final ContentPanel contentPanel) {
 		
-		this.postsPanel = postsPanel;
-				
-		header.setText("KWINTESUNS");
-		header.setStyleName("headerStyle");
-		header.addClickHandler(new ClickHandler() {
+		ClickHandler refreshHandler = new ClickHandler() {
 		    @Override
 		    public void onClick (ClickEvent event){
 		    	/*if (baseUrl.equals("") || (baseUrl == null))
 			    	baseUrl = Window.Location.getHref();
 				Window.Location.replace(baseUrl);*/
-		    	postsPanel.initPosts();
+		    	contentPanel.init();
 		    }
-		});
+		};
+		
+		this.postsPanel = contentPanel;
+				
+		header.setText("KWINTESUNS");
+		header.setStyleName("headerStyle");
+		header.addClickHandler(refreshHandler);
+		
+		Button refreshButton = new Button();
+		refreshButton.setSize("37px", "33px");
+		refreshButton.setStyleName("updateItemButton");
+		refreshButton.addClickHandler(refreshHandler);
 		
 		loggedInLabel.setStyleName("topBannerText");
 		if (loggedInLabel.getText().equals(""))
@@ -57,13 +65,13 @@ public class TopPanel extends VerticalPanel {
 		
     	postMenu.addStyleName("MenuBar");
     	postMenu.addItem("New Post", newPost);
-        
+    	
 		filterMenu.addStyleName("MenuBar");
 		filterMenu.addItem("Videos", showVideos);
 		filterMenu.addItem("Pictures", showPictures);
 		filterMenu.addItem("News", showNews);
 		filterMenu.addItem("Thoughts", showThoughts);
-        friendsButton = filterMenu.addItem("Friends", showFriends);
+        friendsButton = filterMenu.addItem("Subscriptions", showSubscribe);
         friendsButton.setVisible(false);
 
 		loginMenu.addStyleName("MenuBar");
@@ -83,15 +91,17 @@ public class TopPanel extends VerticalPanel {
 		headerGrid.setWidget(0, 1, loggedInLabel);
 		
 		menuGrid.setSize("100%", "35px");
-		menuGrid.getColumnFormatter().setWidth(0, "96px");
-		menuGrid.getColumnFormatter().setWidth(1, "*");
-		menuGrid.getColumnFormatter().setWidth(2, "59px");
-		menuGrid.getFlexCellFormatter().setAlignment(0, 2, 
+		menuGrid.getColumnFormatter().setWidth(0, "37px");
+		menuGrid.getColumnFormatter().setWidth(1, "90px");
+		menuGrid.getColumnFormatter().setWidth(2, "*");
+		menuGrid.getColumnFormatter().setWidth(3, "59px");
+		menuGrid.getFlexCellFormatter().setAlignment(0, 3, 
 				HasHorizontalAlignment.ALIGN_RIGHT, 
 				HasVerticalAlignment.ALIGN_MIDDLE);
-		menuGrid.setWidget(0, 0, postMenu);
-		menuGrid.setWidget(0, 1, filterMenu);
-		menuGrid.setWidget(0, 2, loginMenu);
+		menuGrid.setWidget(0, 0, refreshButton);
+		menuGrid.setWidget(0, 1, postMenu);
+		menuGrid.setWidget(0, 2, filterMenu);
+		menuGrid.setWidget(0, 3, loginMenu);
 		
 		setStyleName("topPanel");
 		add(headerGrid);
@@ -100,11 +110,11 @@ public class TopPanel extends VerticalPanel {
 	}
 
 	//update loggedInLabel, loginButton & friendsButton
-	public void refresh() {		
+	public void init() {		
 		async.getCurrentMyUser(new AsyncCallback<MyUser>() {
 		    @Override
 		    public void onFailure(Throwable caught) {
-		        Window.alert("refresh().getCurrentMyUser failed\n" + caught);
+		        Window.alert("init().getCurrentMyUser failed\n" + caught);
 		        if (loggedInLabel.getText().equals("") || 
 		        		loggedInLabel.getText().equals("Not logged in"))
 		            loggedInLabel.setText("logging in...");
@@ -155,7 +165,7 @@ public class TopPanel extends VerticalPanel {
 		@Override
 		public void execute() {applyTypeFilter("thought");}
 	};	
-	private final Command showFriends = new Command() {
+	private final Command showSubscribe = new Command() {
 		@Override
 		public void execute() {postsPanel.showPostList("poster", user.getSubscriptionList());}
 	};
