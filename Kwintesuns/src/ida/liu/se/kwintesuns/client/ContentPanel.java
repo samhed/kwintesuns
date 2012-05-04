@@ -11,6 +11,8 @@ import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.event.dom.client.KeyDownEvent;
 import com.google.gwt.event.dom.client.KeyDownHandler;
+import com.google.gwt.event.dom.client.LoadEvent;
+import com.google.gwt.event.dom.client.LoadHandler;
 import com.google.gwt.event.logical.shared.CloseEvent;
 import com.google.gwt.event.logical.shared.CloseHandler;
 import com.google.gwt.event.logical.shared.OpenEvent;
@@ -362,16 +364,25 @@ public class ContentPanel extends FlexTable {
 			if (split.length >= 2)
 				videoId = split[1];
 			youTubePlayer = new YouTubeEmbeddedPlayer(videoId);
-			youTubePlayer.setSize("100%", "320px");
+			youTubePlayer.setSize("427px", "320px");
 			contentItem.setWidget(0, 2, youTubePlayer);	
 		} else if (post.getType().equals("picture")) {		
 			// if its a picture add it to the postItem
-			Image img = new Image(post.getText());
+			final Image img = new Image(post.getText());
 			if (img.getHeight() != 0) {
-				float aspectRatio = (float) img.getHeight() / 
-						(float) img.getWidth();
-				img.setWidth("427px");
-				img.setHeight((427/aspectRatio) + "px");
+				final int w = img.getWidth();
+				final float aspectRatio = (float) w / 
+						(float) img.getHeight();
+				img.addLoadHandler(new LoadHandler() {
+					@Override
+					public void onLoad(LoadEvent event) {
+						img.setWidth("427px");
+						if (w > 427)
+							img.setHeight((int) (427/aspectRatio) + "px");
+						else if (w <= 427)
+							img.setHeight((int) (427*aspectRatio) + "px");
+					}
+				});
 			}
 			contentItem.setWidget(0, 2, img);
 		} else {
