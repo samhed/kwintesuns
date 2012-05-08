@@ -35,7 +35,7 @@ public class NewPostDialog extends DialogBox {
 	private Label titleLabel = new Label("Title:");
 	private Label typeLabel = new Label("Type:");
 	private Label descriptionLabel = new Label("Description (Max 100 characters):");
-	private Label pictureLabel = new Label("Picture (leave empty for default):");
+	private Label pictureLabel = new Label("Thumbnail (leave empty for default):");
 	private Label textLabel = new Label("Video url:");
 	private Label updateLabel = new Label("Update:");
 	
@@ -87,7 +87,9 @@ public class NewPostDialog extends DialogBox {
 					});
 				} else {
 					Window.alert("Too long text (Max 600 characters) or \n" +
-							"description (Max 100 characters).");
+							"description (Max 100 characters). \n " +
+							"Otherwise you forgot to fill in all fields \n" +
+							"(only Thumbnail can be left empty)");
 				}
 			}
 		});
@@ -175,7 +177,9 @@ public class NewPostDialog extends DialogBox {
 	
 	// Check if the info specified by the user is OK
 	public boolean newPostFormIsOK() {
-		return descriptionBox.isWithinLimit() && textBox.isWithinLimit();
+		return descriptionBox.isWithinLimit() && textBox.isWithinLimit()
+				&& !titleBox.getText().isEmpty() && !descriptionBox.isEmpty()
+				&& !textBox.isEmpty();
 	}
 	
 	public void setTypeBoxSelected(int i) {

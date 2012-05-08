@@ -90,7 +90,9 @@ public class EditPostDialog extends NewPostDialog {
 							});
 				} else {
 					Window.alert("Too long text (Max 600 characters) or \n" +
-							"description (Max 140 characters).");
+							"description (Max 100 characters). \n " +
+							"Otherwise you forgot to fill in all fields \n" +
+							"(only Thumbnail can be left empty)");
 				}
 			}
 		});

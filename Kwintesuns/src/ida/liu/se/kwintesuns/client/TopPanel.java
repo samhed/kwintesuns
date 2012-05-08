@@ -92,7 +92,7 @@ public class TopPanel extends VerticalPanel {
 		
 		menuGrid.setSize("100%", "35px");
 		menuGrid.getColumnFormatter().setWidth(0, "37px");
-		menuGrid.getColumnFormatter().setWidth(1, "90px");
+		menuGrid.getColumnFormatter().setWidth(1, "100px");
 		menuGrid.getColumnFormatter().setWidth(2, "*");
 		menuGrid.getColumnFormatter().setWidth(3, "59px");
 		menuGrid.getFlexCellFormatter().setAlignment(0, 3, 
@@ -109,7 +109,7 @@ public class TopPanel extends VerticalPanel {
 		setSize("100%", "90px");
 	}
 
-	//update loggedInLabel, loginButton & friendsButton
+	// update loggedInLabel, loginButton & friendsButton
 	public void init() {		
 		async.getCurrentMyUser(new AsyncCallback<MyUser>() {
 		    @Override
@@ -132,7 +132,7 @@ public class TopPanel extends VerticalPanel {
 		        	loginButtonText = "Logout";
 		            loginButton.setText(loginButtonText);
 		            user = result;
-		            loggedInLabel.setText("Logged in as: " + user.getFederatedId());
+		            loggedInLabel.setText("Logged in as: " + user.getEmail());
 		            friendsButton.setVisible(true);
 		        }
 		    }
@@ -167,7 +167,7 @@ public class TopPanel extends VerticalPanel {
 	};	
 	private final Command showSubscribe = new Command() {
 		@Override
-		public void execute() {postsPanel.showPostList("poster", user.getSubscriptionList());}
+		public void execute() {postsPanel.showPostList("author", user.getSubscriptionList());}
 	};
 	private final Command login = new Command() {
 		@Override
