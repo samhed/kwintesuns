@@ -55,7 +55,8 @@ ServerService {
 	private MyUser makeMyUser(User user) {
 		
 		if (userService.isUserLoggedIn()) {
-			MyUser myUser = new MyUser(user.getNickname(), userService.isUserAdmin());
+			MyUser myUser = new MyUser(user.getEmail(),
+					userService.isUserAdmin());
 			if(userIsNew(user))
 				ofy.put(myUser);
 			return myUser;
@@ -69,7 +70,7 @@ ServerService {
 	private boolean userIsNew(User user) {
 		
 		try {
-			ofy.get(MyUser.class, user.getFederatedIdentity());
+			ofy.get(MyUser.class, user.getEmail());
 		} catch (IllegalArgumentException e) {
 			return true; //name cannot be null or empty
 		} catch (NotFoundException e) {
@@ -83,7 +84,7 @@ ServerService {
 		
 		MyUser u = getCurrentMyUser();
 		if (u != null) {
-			ofy.delete(MyUser.class, u.getFederatedId()); 	//delete old user
+			ofy.delete(MyUser.class, u.getEmail()); 	//delete old user
 			u.addSubscription(emailToSubscribeTo); 			//update user
 			ofy.put(u); 									//add updated user
 		}
@@ -94,7 +95,7 @@ ServerService {
 		
 		MyUser u = getCurrentMyUser();
 		if (u != null) {
-			ofy.delete(MyUser.class, u.getFederatedId()); 	//delete old user
+			ofy.delete(MyUser.class, u.getEmail()); 	//delete old user
 			u.removeSubscription(emailToUnsubscribeFrom); 	//update user
 			ofy.put(u); 									//add updated user
 		}
@@ -109,7 +110,7 @@ ServerService {
 		
         if (post != null) {
         	if (userService.isUserLoggedIn())
-        		post.setAuthor(userService.getCurrentUser().getNickname());
+        		post.setAuthor(userService.getCurrentUser().getEmail());
         	else
         		post.setAuthor("Anonymous");
     		post.setDate(new Date());
@@ -249,7 +250,7 @@ ServerService {
 		Comment comment = new Comment(text, updatedPostId);
     	comment.setDate(updatedPost.getDate());
     	if (userService.isUserLoggedIn())
-    		comment.setAuthor(userService.getCurrentUser().getNickname());
+    		comment.setAuthor(userService.getCurrentUser().getEmail());
     	else
     		comment.setAuthor("Anonymous");
     	ofy.put(comment);

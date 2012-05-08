@@ -74,36 +74,32 @@ public class ContentPanel extends FlexTable {
 		public void onSuccess(MyUser result) {
 			if (result != null) {
 				userIsAdmin = result.isAdministrator();
-				currentUser = result.getFederatedId();
+				currentUser = result.getEmail();
 			}
 		}
     };
-    
-    // Used for EditPostDialog and NewPostDialog
-    private CloseHandler<PopupPanel> dialogCloseHandler = 
-    		new CloseHandler<PopupPanel>() {
-		@Override
-		public void onClose(CloseEvent<PopupPanel> event) {
-			// If a new post was stored
-			if (newPostDialog.getNewPostId() != null) {
-				// Adds a temporary post to skip another servercall
-				Post p = newPostDialog.getTextBoxValues();
-				p.setId(newPostDialog.getNewPostId());
-				p.setAuthor(currentUser);
-				p.setDate(new Date());
-				postList.add(0, p);
-				updatePostList(postList);
-			} else {
-				((DisclosurePanel) postsTable.getWidget(selectedPostNr, 0))
-    				.setOpen(true);
-			}
-		}
-	};
 	
 	public ContentPanel() {
 		
 		this.newPostDialog = new NewPostDialog();
-		this.newPostDialog.addCloseHandler(dialogCloseHandler);
+		this.newPostDialog.addCloseHandler(new CloseHandler<PopupPanel>() {
+			@Override
+			public void onClose(CloseEvent<PopupPanel> event) {
+				// If a new post was stored
+				if (newPostDialog.getNewPostId() != null) {
+					// Adds a temporary post to skip another servercall
+					Post p = newPostDialog.getTextBoxValues();
+					p.setId(newPostDialog.getNewPostId());
+					p.setAuthor(currentUser);
+					p.setDate(new Date());
+					postList.add(0, p);
+					updatePostList(postList);
+				} else {
+					((DisclosurePanel) postsTable.getWidget(selectedPostNr, 0))
+	    				.setOpen(true);
+				}
+			}
+		});
 
 		postsTable.setSize("100%", "100%");
 		postsPanel.setSize("100%", "100%");
@@ -529,7 +525,12 @@ public class ContentPanel extends FlexTable {
 	private void editPostDialog(Post post) {
 		editPostDialog = new EditPostDialog(post, currentUser);
 		editPostDialog.center();
-		editPostDialog.addCloseHandler(dialogCloseHandler);
+		editPostDialog.addCloseHandler(new CloseHandler<PopupPanel>() {
+			@Override
+			public void onClose(CloseEvent<PopupPanel> event) {
+				init();
+			}
+		});
 	}
 	
 	/**

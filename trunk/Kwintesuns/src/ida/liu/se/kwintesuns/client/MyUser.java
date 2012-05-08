@@ -9,7 +9,7 @@ import com.google.gwt.user.client.rpc.IsSerializable;
 
 @Entity public class MyUser implements IsSerializable {
 	
-	@Id private String id;
+	@Id private String email;
 	private ArrayList<String> subscriptionList;
 	private boolean administrator;
 
@@ -17,11 +17,11 @@ import com.google.gwt.user.client.rpc.IsSerializable;
 	
 	// should only be called from the serverside
 	public MyUser(String i, boolean admin) {
-		this.id = i;
+		this.email = i;
 		this.administrator = admin;
 		this.subscriptionList = new ArrayList<String>();
 		//TODO temporary:
-		this.addSubscription("test@example.com");
+		this.addSubscription("robert.edquist@gmail.com");
 	}
 
 	// should only be called from the serverside
@@ -38,8 +38,8 @@ import com.google.gwt.user.client.rpc.IsSerializable;
 		return administrator;
 	}
 
-	public String getFederatedId() {
-		return this.id;
+	public String getEmail() {
+		return this.email;
 	}
 
 	public ArrayList<String> getSubscriptionList() {
