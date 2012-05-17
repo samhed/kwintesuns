@@ -418,8 +418,8 @@ public class ContentPanel extends FlexTable {
 			final int w = img.getWidth();
 			// aspectRatio is used to keep the same ratio between
 			// height and width when scaling
-			final float aspectRatio = (float) w / 
-					(float) img.getHeight();
+			final float aspectRatio = 
+					(float) w / (float) img.getHeight();
 			// when the image is loaded scale it to match the layout
 			img.addLoadHandler(new LoadHandler() {
 				@Override
@@ -477,7 +477,14 @@ public class ContentPanel extends FlexTable {
 		authorLabel.addClickHandler(new ClickHandler() {			
 			@Override
 			public void onClick(ClickEvent event) {
-				if (!subscribedTo(author)) {
+				boolean isSubscribed;
+				try {
+					isSubscribed = !subscribedTo(author);
+				} catch (NullPointerException e) {
+					// the user is not logged in don't do anything.
+					return;
+				}
+				if (isSubscribed) {
 					// subscribe if the user isn't subscribed to this yet
 					async.subscribe(author, new AsyncCallback<Void>() {
 						@Override
