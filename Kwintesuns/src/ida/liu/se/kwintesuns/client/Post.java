@@ -1,5 +1,6 @@
 package ida.liu.se.kwintesuns.client;
 
+import java.util.ArrayList;
 import java.util.Date;
 
 import javax.persistence.Entity;
@@ -20,6 +21,7 @@ import com.google.gwt.user.client.rpc.IsSerializable;
 	private String text;
 	private String update;
 	private Date date;
+	private ArrayList<String> flagList;
 
 	public Post() {}
 
@@ -51,6 +53,11 @@ import com.google.gwt.user.client.rpc.IsSerializable;
 	// should only be used when making a temporary post
 	public void setId(Long id) {
 		this.id = id;
+	}
+
+	// should only be called from the serverside
+	public void setFlagList(ArrayList<String> flagList) {
+		this.flagList = flagList;
 	}
 	
 	public Long getId() {
@@ -87,5 +94,9 @@ import com.google.gwt.user.client.rpc.IsSerializable;
 
 	public String getUpdate() {
 		return update;
+	}
+
+	public ArrayList<String> getFlagList() {
+		return flagList;
 	}
 }

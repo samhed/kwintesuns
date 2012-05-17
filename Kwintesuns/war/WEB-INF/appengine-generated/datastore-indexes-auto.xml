@@ -1,8 +1,8 @@
-<!-- Indices written at Thu, 17 May 2012 16:05:52 CEST -->
+<!-- Indices written at Thu, 17 May 2012 16:41:09 CEST -->
 
 <datastore-indexes>
 
-    <!-- Used 28 times in query history -->
+    <!-- Used 91 times in query history -->
     <datastore-index kind="Comment" ancestor="false" source="auto">
         <property name="postId" direction="asc"/>
         <property name="date" direction="desc"/>
@@ -12,6 +12,12 @@
     <datastore-index kind="Post" ancestor="false" source="auto">
         <property name="author" direction="asc"/>
         <property name="date" direction="desc"/>
+    </datastore-index>
+
+    <!-- Used 18 times in query history -->
+    <datastore-index kind="Comment" ancestor="false" source="auto">
+        <property name="postId" direction="asc"/>
+        <property name="date" direction="asc"/>
     </datastore-index>
 
 </datastore-indexes>

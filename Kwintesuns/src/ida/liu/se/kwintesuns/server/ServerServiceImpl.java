@@ -28,6 +28,8 @@ ServerService {
 	
 	private UserService userService = UserServiceFactory.getUserService();
     private Objectify ofy = ObjectifyService.begin();
+	private final int POSTLIMIT = 10;
+	private final int COMMENTLIMIT = 10;  
 
 	// The Objectify service for the entity must be registered before any 
     // operations can be executed
@@ -40,17 +42,8 @@ ServerService {
 	/**
 	 * 	-------------------------------------MyUser services----------------------------------
 	 */
-	
+
 	// Returns the user, if he or she is logged in
-	/*public MyUser getCurrentMyUser() {
-		
-        User user = userService.getCurrentUser(); // or req.getUserPrincipal()
-        if (user != null)
-    		return makeMyUser(user);
-        else
-        	return null;
-	}*/
-	
 	public MyUser getCurrentMyUser() {
 		MyUser myUser;
 		User user = userService.getCurrentUser();
@@ -122,12 +115,34 @@ ServerService {
         		post.setAuthor("Anonymous");
     		post.setDate(new Date());
     		try {
+    			checkPostLimit();    				
     			return ofy.put(post).getId();
     		} catch (NotFoundException e) {
     			return null;
     		}
         }
         return null;
+	}
+
+	// Check if the number of posts have reached its limit.
+	private void checkPostLimit() {
+		Query<Post> q = ofy.query(Post.class).order("date");
+		if (q.count() == POSTLIMIT) {
+			Iterable<com.googlecode.objectify.Key<Post>> allKeys = q.fetchKeys();
+			Post p;
+			
+			// Loop through the query result and remove the first one
+			for (com.googlecode.objectify.Key<Post> k : allKeys) {
+				try {
+					p = ofy.get(k);
+					deletePost(p.getId());
+				} catch (NotFoundException e) {
+					// This entry was probably recently removed - skip it
+					continue;
+				}
+				break;
+			}
+		}
 	}
 
 	// Delete a post stored in the datastore
@@ -197,7 +212,7 @@ ServerService {
 				continue;
 			}
 			posts.add(p);
-		}		
+		}
 		return posts;
 	}
 	
@@ -260,8 +275,32 @@ ServerService {
     		comment.setAuthor(userService.getCurrentUser().getEmail());
     	else
     		comment.setAuthor("Anonymous");
+    	
+    	checkCommentLimit(comment.getPostId());
     	ofy.put(comment);
     	return updatedPostId;
+	}
+
+	// Check if the number of comments have reached its limit.
+	private void checkCommentLimit(long postId) {
+		Query<Comment> q =
+				ofy.query(Comment.class).filter("postId", postId).order("date");
+		if (q.count() == COMMENTLIMIT) {
+			Iterable<com.googlecode.objectify.Key<Comment>> allKeys = q.fetchKeys();
+			Comment c;
+			
+			// Loop through the query result and remove the first one
+			for (com.googlecode.objectify.Key<Comment> k : allKeys) {
+				try {
+					c = ofy.get(k);
+					deleteComment(c.getId());
+				} catch (NotFoundException e) {
+					// This entry was probably recently removed - skip it
+					continue;
+				}
+				break;
+			}
+		}
 	}
 
 	// Delete a comment from the datastore
