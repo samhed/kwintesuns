@@ -33,6 +33,8 @@ import com.google.gwt.user.client.rpc.IsSerializable;
 		this.description = descr;
 		this.picture = pic;
 		this.text = txt;
+		this.flagList = new ArrayList<String>();
+		this.flagList.add("test@example.com");
 	}
 
 	// should only be called from the serverside
@@ -54,10 +56,10 @@ import com.google.gwt.user.client.rpc.IsSerializable;
 	public void setId(Long id) {
 		this.id = id;
 	}
-
+	
 	// should only be called from the serverside
-	public void setFlagList(ArrayList<String> flagList) {
-		this.flagList = flagList;
+	public void addToFlagList(String flagger) {
+		this.flagList.add(flagger);
 	}
 	
 	public Long getId() {

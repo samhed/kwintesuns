@@ -155,11 +155,28 @@ textarea {
     padding						:	0 0 0 0;
 }
 
+.flagButton {
+    cursor						:	hand;
+	cursor						: 	pointer;
+	border						: 	none;
+    background-image			:	url('img/flag.png');
+    padding						:	0 0 0 0;
+}
+
 .removeCommentButton {
     cursor						:	hand;
 	cursor						: 	pointer;
 	border						: 	none;
     background-image			:	url('img/remove.gif');
+    background-color			:	#F9F9F9;
+    padding						:	0 0 0 0;	
+}
+
+.flagCommentButton {
+    cursor						:	hand;
+	cursor						: 	pointer;
+	border						: 	none;
+    background-image			:	url('img/flag.png');
     background-color			:	#F9F9F9;
     padding						:	0 0 0 0;	
 }

@@ -29,6 +29,7 @@ import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.ScrollPanel;
+import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.youtube.client.YouTubeEmbeddedPlayer;
 
 public class ContentPanel extends FlexTable {
@@ -343,6 +344,10 @@ public class ContentPanel extends FlexTable {
 	private FlexTable makePostContentItem(final Post post) {
 
 		FlexTable contentItem = new FlexTable();
+		// A small panel containing the remove and the flag buttons.
+		VerticalPanel postButtonPanel = new VerticalPanel();		
+		postButtonPanel.setWidth("16px");
+		
 		Label updateLabel = new Label(post.getUpdate());
 		Label dateLabel = new Label(DateTimeFormat
 				.getFormat("yyyy-MM-dd HH:mm:ss").format(post.getDate()));
@@ -377,13 +382,20 @@ public class ContentPanel extends FlexTable {
 				HasVerticalAlignment.ALIGN_BOTTOM);
 		contentItem.setWidget(1, 3, dateLabel);
 		
+		// Add the flag post button for all users, 
+		// even if you are not logged in.
+		postButtonPanel.add(makeFlagPostButton(post.getId()));
+		
 		// if the current user is a admin, show the remove button
         if (userIsAdmin) {
-        	contentItem.getCellFormatter().setAlignment(0, 4, 
-    				HasHorizontalAlignment.ALIGN_RIGHT,
-    				HasVerticalAlignment.ALIGN_TOP);        	
-        	contentItem.setWidget(0, 4, makeRemovePostButton(post.getId()));
+        	postButtonPanel.add(makeRemovePostButton(post.getId()));
         }
+
+    	contentItem.getCellFormatter().setAlignment(0, 4, 
+				HasHorizontalAlignment.ALIGN_RIGHT,
+				HasVerticalAlignment.ALIGN_TOP);
+    	contentItem.setWidget(0, 4, postButtonPanel);
+    	
 		// if the current user is the author of the selected post or if he
         // is a admin, show the update button
         if ((currentUser != null) && 
@@ -397,7 +409,7 @@ public class ContentPanel extends FlexTable {
         
         return contentItem;
 	}
-	
+
 	/**
 	 * Checks if the email is in the subscription list of the current user
 	 * @param email of the user to subscribe/unsubscribe to
@@ -580,6 +592,11 @@ public class ContentPanel extends FlexTable {
 	private FlexTable newCommentItem(Comment comment) {
 		
 		FlexTable commentItem = new FlexTable();
+
+		// A small panel containing the remove and the flag buttons.
+		VerticalPanel commentButtonPanel = new VerticalPanel();		
+		commentButtonPanel.setSize("16px", "32px");
+		
 		commentItem.setStyleName("commentItem");
 		commentItem.setWidth("100%");
 		commentItem.getColumnFormatter().setWidth(0, "80%");
@@ -603,15 +620,18 @@ public class ContentPanel extends FlexTable {
 		commentItem.setWidget(0, 1, authorLabel);
 		commentItem.setWidget(1, 1, dateLabel);
 		
+		commentButtonPanel.add(makeFlagCommentButton(comment.getId()));
+		
 		// if the user is a admin, show the remove comment button
 		if (userIsAdmin) {
-    		Button removeButton = makeRemoveCommentButton(comment.getId());
-        	commentItem.getCellFormatter().setAlignment(0, 2, 
-    				HasHorizontalAlignment.ALIGN_RIGHT,
-    				HasVerticalAlignment.ALIGN_TOP);
-        	
-        	commentItem.setWidget(0, 2, removeButton);
+			commentButtonPanel.add(makeRemoveCommentButton(comment.getId()));
 		}
+		
+    	commentItem.getCellFormatter().setAlignment(0, 2, 
+				HasHorizontalAlignment.ALIGN_RIGHT,
+				HasVerticalAlignment.ALIGN_TOP);
+    	
+    	commentItem.setWidget(0, 2, commentButtonPanel);
 		
 		return commentItem;
 	}
@@ -657,6 +677,50 @@ public class ContentPanel extends FlexTable {
 		else 
 			return defaultTypeImageUrls.get("error");
 	}
+
+	/**
+	 * Creates a button used to flag a post.
+	 * Anonymous users will share one button(vote),
+	 * logged in users will get one each. 
+	 * @param postId needed for the call to flag post
+	 * @return the flag post button
+	 */
+	private Button makeFlagPostButton(final Long postId) {
+		Button b = new Button();
+		b.setSize("16px", "16px");
+		b.setStyleName("flagButton");
+		b.addClickHandler(new ClickHandler() {
+			@Override
+			public void onClick(ClickEvent event) {
+				if (postId != null) {
+					String flagger;
+					if (currentUser == null)
+						flagger = "Anonymous";
+					else 
+						flagger = currentUser.getEmail();
+					
+					async.flagPost(postId, flagger, 
+							new AsyncCallback<Void>() {
+								@Override
+								public void onFailure(Throwable caught) {
+									Window.alert("makeFlagPostButton.flagPost " +
+											"failed \n" + caught);
+								}
+								@Override
+								public void onSuccess(Void result) {
+									// Great success
+								}
+							});
+				} else {
+					// The post is just temporary
+					Window.alert("Trying to flag a post before it was " +
+							"fetched from the database, reloading page.");
+					init();
+				}
+			}
+		});
+		return b;
+	}
 	
 	/**
 	 * Creates a button used to update/edit a post
@@ -672,7 +736,7 @@ public class ContentPanel extends FlexTable {
 			@Override
 			public void onClick(ClickEvent event) {
 				if (post.getId() != null) {
-					editPostDialog(post);					
+					editPostDialog(post);
 				} else {
 					// The post is just temporary
 					Window.alert("Trying to edit a post before it was " +
@@ -744,6 +808,43 @@ public class ContentPanel extends FlexTable {
 							@Override
 							public void onSuccess(Void result) {
 								showComments(selectedPost.getId());
+							}
+						});
+			}
+		});
+		return b;
+	}
+	
+	/**
+	 * Creates a button used to flag a comment.
+	 * Anonymous users will share one button(vote),
+	 * logged in users will get one each. 
+	 * @param commentId needed for the call to flag a comment
+	 * @return the flag comment button
+	 */
+	private Button makeFlagCommentButton(final Long commentId) {
+		Button b = new Button();
+		b.setSize("16px", "16px");
+		b.setStyleName("flagCommentButton");
+		b.addClickHandler(new ClickHandler() {
+			@Override
+			public void onClick(ClickEvent event) {
+				String flagger;
+				if (currentUser == null)
+					flagger = "Anonymous";
+				else 
+					flagger = currentUser.getEmail();
+				
+				async.flagComment(commentId, flagger, 
+						new AsyncCallback<Void>() {
+							@Override
+							public void onFailure(Throwable caught) {
+								Window.alert("makeFlagCommentButton.flagComment " +
+										"failed \n" + caught);
+							}
+							@Override
+							public void onSuccess(Void result) {
+								// Great success
 							}
 						});
 			}
