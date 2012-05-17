@@ -29,7 +29,8 @@ ServerService {
 	private UserService userService = UserServiceFactory.getUserService();
     private Objectify ofy = ObjectifyService.begin();
 	private final int POSTLIMIT = 10;
-	private final int COMMENTLIMIT = 10;  
+	private final int COMMENTLIMIT = 10;
+	private final int FLAGLIMIT = 5;
 
 	// The Objectify service for the entity must be registered before any 
     // operations can be executed
@@ -47,10 +48,10 @@ ServerService {
 	public MyUser getCurrentMyUser() {
 		MyUser myUser;
 		User user = userService.getCurrentUser();
-		if (user != null) {				
+		if (user != null) {
 			try {
 				myUser = ofy.get(MyUser.class, user.getEmail());
-			} catch (IllegalArgumentException e) {			
+			} catch (IllegalArgumentException e) {
 				return null; //name cannot be null or empty
 			} catch (NotFoundException e) {
 				// user not found in DB
@@ -127,7 +128,7 @@ ServerService {
 	// Check if the number of posts have reached its limit.
 	private void checkPostLimit() {
 		Query<Post> q = ofy.query(Post.class).order("date");
-		if (q.count() == POSTLIMIT) {
+		if (q.count() >= POSTLIMIT) {
 			Iterable<com.googlecode.objectify.Key<Post>> allKeys = q.fetchKeys();
 			Post p;
 			
@@ -192,6 +193,29 @@ ServerService {
         deletePost(oldPost.getId());
         
         return updatedPost.getId(); 
+	}
+	
+	// Flag a post and update the database
+	public void flagPost(Long postId, String flagger) {
+		Post p;
+		try {
+			p = ofy.get(Post.class, postId);
+		} catch (NotFoundException e) {
+			// Don't continue if the post wasn't found
+			return;
+		}
+		
+		if (p.getFlagList().contains(flagger))
+			return; // the user already flagged this post
+		else
+			p.addToFlagList(flagger);
+
+		// Delete the post if the size of the flaglist has 
+		// reached the limit.
+		if (p.getFlagList().size() >= FLAGLIMIT)
+			deletePost(p.getId());	
+		else
+			ofy.put(p);
 	}
 
 	// Returns all posts
@@ -285,7 +309,7 @@ ServerService {
 	private void checkCommentLimit(long postId) {
 		Query<Comment> q =
 				ofy.query(Comment.class).filter("postId", postId).order("date");
-		if (q.count() == COMMENTLIMIT) {
+		if (q.count() >= COMMENTLIMIT) {
 			Iterable<com.googlecode.objectify.Key<Comment>> allKeys = q.fetchKeys();
 			Comment c;
 			
@@ -351,5 +375,27 @@ ServerService {
 		newComment.setDate(oldComment.getDate());
 		ofy.delete(oldComment);
 		ofy.put(newComment);
+	}
+
+	public void flagComment(Long commentId, String flagger) {
+		Comment c;
+		try {
+			c = ofy.get(Comment.class, commentId);
+		} catch (NotFoundException e) {
+			// Don't continue if the comment wasn't found
+			return;
+		}
+		
+		if (c.getFlagList().contains(flagger))
+			return; // the user already flagged this comment
+		else
+			c.addToFlagList(flagger);
+
+		// Delete the comment if the size of the flaglist has 
+		// reached the limit.
+		if (c.getFlagList().size() >= FLAGLIMIT)
+			deleteComment(c.getId());
+		else
+			ofy.put(c);
 	}
 }

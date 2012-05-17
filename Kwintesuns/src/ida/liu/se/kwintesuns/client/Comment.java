@@ -25,6 +25,8 @@ import com.google.gwt.user.client.rpc.IsSerializable;
 	public Comment(String txt, Long pid) {
 		this.text = txt;
 		this.postId = pid;
+		this.flagList = new ArrayList<String>();
+		this.flagList.add("test@example.com");
 	}
 
 	// should only be called from the serverside
@@ -43,8 +45,8 @@ import com.google.gwt.user.client.rpc.IsSerializable;
 	}
 
 	// should only be called from the serverside
-	public void setFlagList(ArrayList<String> flagList) {
-		this.flagList = flagList;
+	public void addToFlagList(String flagger) {
+		this.flagList.add(flagger);
 	}
 	
 	public String getText() {

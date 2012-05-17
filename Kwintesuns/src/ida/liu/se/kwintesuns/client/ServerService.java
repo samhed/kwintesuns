@@ -14,10 +14,12 @@ public interface ServerService extends RemoteService {
 	Long storePost(Post post);
 	void deletePost(Long postId);
 	Long editPost(Long postId, Post updatedPost);
+	void flagPost(Long postId, String flagger);
 	ArrayList<Post> getAllPosts();
 	ArrayList<Post> fetchPosts(String filterBy, ArrayList<String> filter);
 	
 	Long storeComment(String text, Long postId);
 	void deleteComment(Long commentId);
 	ArrayList<Comment> getComments(Long postId);
+	void flagComment(Long commentId, String flagger);
 }
