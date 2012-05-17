@@ -37,12 +37,5 @@ public class Kwintesuns implements EntryPoint {
 		
         topPanel.init();
 		contentPanel.init();
-
-        // schedule the timer to fire every second
-		/*Timer t = new Timer(){
-            public void run() {
-            }
-        };
-        t.scheduleRepeating(1000);*/
 	}
 }

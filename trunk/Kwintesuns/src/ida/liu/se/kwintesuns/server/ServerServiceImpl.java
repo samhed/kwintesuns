@@ -42,13 +42,33 @@ ServerService {
 	 */
 	
 	// Returns the user, if he or she is logged in
-	public MyUser getCurrentMyUser() {
+	/*public MyUser getCurrentMyUser() {
 		
         User user = userService.getCurrentUser(); // or req.getUserPrincipal()
         if (user != null)
     		return makeMyUser(user);
         else
         	return null;
+	}*/
+	
+	public MyUser getCurrentMyUser() {
+		MyUser myUser;
+		User user = userService.getCurrentUser();
+		if (user != null) {				
+			try {
+				myUser = ofy.get(MyUser.class, user.getEmail());
+			} catch (IllegalArgumentException e) {			
+				return null; //name cannot be null or empty
+			} catch (NotFoundException e) {
+				// user not found in DB
+				return makeMyUser(user);
+			}
+			
+			return myUser;
+		} else {
+			// no user logged in
+			return null;
+		}
 	}
 
 	// Add user to the database if it's not already there
@@ -57,32 +77,18 @@ ServerService {
 		if (userService.isUserLoggedIn()) {
 			MyUser myUser = new MyUser(user.getEmail(),
 					userService.isUserAdmin());
-			if(userIsNew(user))
-				ofy.put(myUser);
+			ofy.put(myUser);
 			return myUser;
 		} else {
 			return null;
 		}
 	}
 
-	// Check if the user is new - if the user is new, 
-	// it will not exist in the datastore
-	private boolean userIsNew(User user) {
-		
-		try {
-			ofy.get(MyUser.class, user.getEmail());
-		} catch (IllegalArgumentException e) {
-			return true; //name cannot be null or empty
-		} catch (NotFoundException e) {
-			return true; //user not found			
-		}
-		return false;
-	}
-
 	// Add subscription and update the user in the datastore
 	public void subscribe(String emailToSubscribeTo) {
 		
 		MyUser u = getCurrentMyUser();
+		
 		if (u != null) {
 			ofy.delete(MyUser.class, u.getEmail()); 	//delete old user
 			u.addSubscription(emailToSubscribeTo); 			//update user
@@ -94,6 +100,7 @@ ServerService {
 	public void unsubscribe(String emailToUnsubscribeFrom) {
 		
 		MyUser u = getCurrentMyUser();
+		
 		if (u != null) {
 			ofy.delete(MyUser.class, u.getEmail()); 	//delete old user
 			u.removeSubscription(emailToUnsubscribeFrom); 	//update user
@@ -118,7 +125,7 @@ ServerService {
     			return ofy.put(post).getId();
     		} catch (NotFoundException e) {
     			return null;
-    		}        	
+    		}
         }
         return null;
 	}
