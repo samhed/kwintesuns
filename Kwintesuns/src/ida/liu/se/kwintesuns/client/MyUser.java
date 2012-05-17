@@ -20,8 +20,7 @@ import com.google.gwt.user.client.rpc.IsSerializable;
 		this.email = i;
 		this.administrator = admin;
 		this.subscriptionList = new ArrayList<String>();
-		//TODO temporary:
-		this.addSubscription("robert.edquist@gmail.com");
+		this.addSubscription("test@example.com");
 	}
 
 	// should only be called from the serverside

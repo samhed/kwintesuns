@@ -41,9 +41,7 @@ public class TopPanel extends VerticalPanel {
 		ClickHandler refreshHandler = new ClickHandler() {
 		    @Override
 		    public void onClick (ClickEvent event){
-		    	/*if (baseUrl.equals("") || (baseUrl == null))
-			    	baseUrl = Window.Location.getHref();
-				Window.Location.replace(baseUrl);*/
+		    	init();
 		    	contentPanel.init();
 		    }
 		};
@@ -78,9 +76,6 @@ public class TopPanel extends VerticalPanel {
 		if (loginButtonText.equals("Logout"))
 			loginButtonText = "Login";
 		loginButton = loginMenu.addItem(loginButtonText, login);
-		
-		//loginDialog.hide();
-		//loginDialog.add(loginFrame);
 		
 		headerGrid.setSize("100%", "55px");
 		headerGrid.getColumnFormatter().setWidth(1, "100%");
@@ -167,14 +162,22 @@ public class TopPanel extends VerticalPanel {
 	};	
 	private final Command showSubscribe = new Command() {
 		@Override
-		public void execute() {postsPanel.showPostList("author", user.getSubscriptionList());}
+		public void execute() {
+			async.getCurrentMyUser(new AsyncCallback<MyUser>() {
+				@Override
+				public void onFailure(Throwable caught) {
+					Window.alert("showSubscribe.getCurrentMyUser " +
+							"failed \n" + caught);
+				}
+				@Override
+				public void onSuccess(MyUser result) {
+					postsPanel.showPostList("author", result.getSubscriptionList());
+				}
+			});
+		}
 	};
 	private final Command login = new Command() {
 		@Override
-		public void execute() {
-			//loginDialog.show();
-			//loginFrame.setUrl("/_ah/OpenID");
-			Window.Location.replace("/_ah/OpenID");
-		}
+		public void execute() {Window.Location.replace("/_ah/OpenID");}
 	};
 }

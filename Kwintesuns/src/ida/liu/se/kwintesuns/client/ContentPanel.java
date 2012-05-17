@@ -40,9 +40,9 @@ public class ContentPanel extends FlexTable {
 	private WatermarkedTextArea newCommentTextArea = new WatermarkedTextArea();
 	private YouTubeEmbeddedPlayer youTubePlayer;
 	private ArrayList<Post> postList;
-	private int selectedPostNr;
+	private int selectedPostNr = 0;
 	private Post selectedPost;
-	private String currentUser = "";
+	private MyUser currentUser;
 	private boolean userIsAdmin = false;
 	private FlexTable postsTable = new FlexTable();
 	private NewPostDialog newPostDialog = null;
@@ -74,7 +74,7 @@ public class ContentPanel extends FlexTable {
 		public void onSuccess(MyUser result) {
 			if (result != null) {
 				userIsAdmin = result.isAdministrator();
-				currentUser = result.getEmail();
+				currentUser = result;
 			}
 		}
     };
@@ -90,7 +90,7 @@ public class ContentPanel extends FlexTable {
 					// Adds a temporary post to skip another servercall
 					Post p = newPostDialog.getTextBoxValues();
 					p.setId(newPostDialog.getNewPostId());
-					p.setAuthor(currentUser);
+					p.setAuthor(currentUser.getEmail());
 					p.setDate(new Date());
 					postList.add(0, p);
 					updatePostList(postList);
@@ -222,7 +222,7 @@ public class ContentPanel extends FlexTable {
 	 * @param filterBy which member to filter by
 	 * @param filter list of strings to filter with
 	 */
-	public void showPostList(String filterBy, ArrayList<String> filter) {
+	public void showPostList(String filterBy, final ArrayList<String> filter) {
 		
 		async.fetchPosts(filterBy, filter,
             new AsyncCallback<ArrayList<Post>>() {
@@ -235,6 +235,13 @@ public class ContentPanel extends FlexTable {
 		        }
 				@Override
 		        public void onSuccess(ArrayList<Post> result) {
+					// if we use multiple filters in the datastore query
+					// each filter will create it's own query and afterwards
+					// the results from these queries will need to be sorted.
+					if (filter.size() > 1) {
+						Quicksort sorter = new Quicksort();
+						sorter.sort(result);
+					}
 		        	updatePostList(result);
 		        }
 		});
@@ -333,16 +340,15 @@ public class ContentPanel extends FlexTable {
 	 * @param post the current post from which we get the info
 	 * @return the contentItem
 	 */
-	private FlexTable makePostContentItem(Post post) {
+	private FlexTable makePostContentItem(final Post post) {
 
 		FlexTable contentItem = new FlexTable();
 		Label updateLabel = new Label(post.getUpdate());
 		Label dateLabel = new Label(DateTimeFormat
 				.getFormat("yyyy-MM-dd HH:mm:ss").format(post.getDate()));
-		Label authorLabel = new Label("by: " + post.getAuthor());
+		
 		updateLabel.setStyleName("postSmall");
 		dateLabel.setStyleName("postSmall");
-		authorLabel.setStyleName("postSmall");
 		
 		contentItem.getCellFormatter().setAlignment(0, 3,
 				HasHorizontalAlignment.ALIGN_RIGHT,
@@ -350,71 +356,164 @@ public class ContentPanel extends FlexTable {
 		contentItem.getColumnFormatter().setWidth(2, "80%");
 		contentItem.getColumnFormatter().setWidth(3, "20%");
 		
-		contentItem.setWidget(0, 3, authorLabel);
+		contentItem.setWidget(0, 3, fixSubscribeLabel(post.getAuthor()));
+
+		// if its a video, parse the string for the videoId 
+		// and add a embedded YouTube player for that video
+		if (post.getType().equals("video"))
+			contentItem.setWidget(0, 2, fixVideo(post));
 		
-		if (post.getType().equals("video")) {
-			// if its a video, parse the string for the videoId 
-			// and add a embedded YouTube player for that video
-			String videoId = null;
-			String[] split = post.getText().split("v=");
-			if (split.length >= 2)
-				videoId = split[1];
-			youTubePlayer = new YouTubeEmbeddedPlayer(videoId);
-			youTubePlayer.setSize("427px", "320px");
-			contentItem.setWidget(0, 2, youTubePlayer);	
-		} else if (post.getType().equals("picture")) {		
-			// if its a picture add it to the postItem
-			final Image img = new Image(post.getText());
-			if (img.getHeight() != 0) {
-				final int w = img.getWidth();
-				final float aspectRatio = (float) w / 
-						(float) img.getHeight();
-				img.addLoadHandler(new LoadHandler() {
-					@Override
-					public void onLoad(LoadEvent event) {
-						img.setWidth("427px");
-						if (w > 427)
-							img.setHeight((int) (427/aspectRatio) + "px");
-						else if (w <= 427)
-							img.setHeight((int) (427*aspectRatio) + "px");
-					}
-				});
-			}
-			contentItem.setWidget(0, 2, img);
-		} else {
-			// else just add the text to the postItem
+		// if its a picture add it to the postItem
+		else if (post.getType().equals("picture"))
+			contentItem.setWidget(0, 2, fixPicture(post));
+		
+		// else just add the text to the postItem
+		else
 			contentItem.setText(0, 2, post.getText());
-		}
+		
 		contentItem.setWidget(1, 2, updateLabel);		
 		contentItem.getCellFormatter().setAlignment(1, 3, 
 				HasHorizontalAlignment.ALIGN_RIGHT,
-				HasVerticalAlignment.ALIGN_BOTTOM);		
+				HasVerticalAlignment.ALIGN_BOTTOM);
 		contentItem.setWidget(1, 3, dateLabel);
 		
 		// if the current user is a admin, show the remove button
         if (userIsAdmin) {
-    		Button removeButton = makeRemovePostButton(post.getId());
         	contentItem.getCellFormatter().setAlignment(0, 4, 
     				HasHorizontalAlignment.ALIGN_RIGHT,
-    				HasVerticalAlignment.ALIGN_TOP);
-        	
-        	contentItem.setWidget(0, 4, removeButton);
+    				HasVerticalAlignment.ALIGN_TOP);        	
+        	contentItem.setWidget(0, 4, makeRemovePostButton(post.getId()));
         }
 		// if the current user is the author of the selected post or if he
         // is a admin, show the update button
-        if (currentUser.equals(post.getAuthor()) || userIsAdmin) {
-        	Button updateButton = makeUpdatePostButton(post);
+        if ((currentUser != null) && 
+        	(currentUser.getEmail().equals(post.getAuthor()) || userIsAdmin)) {
         	contentItem.getCellFormatter().setAlignment(1, 4, 
     				HasHorizontalAlignment.ALIGN_RIGHT,
-    				HasVerticalAlignment.ALIGN_BOTTOM);
-    		
-        	contentItem.setWidget(1, 4, updateButton);
+    				HasVerticalAlignment.ALIGN_BOTTOM);    		
+        	contentItem.setWidget(1, 4, makeUpdatePostButton(post));
         }
         contentItem.setWidth("100%");
         
         return contentItem;
 	}
+	
+	/**
+	 * Checks if the email is in the subscription list of the current user
+	 * @param email of the user to subscribe/unsubscribe to
+	 * @return is the email in the subscription list?
+	 */
+	protected boolean subscribedTo(String email) {
+		return currentUser.getSubscriptionList().contains(email);
+	}
 
+	/**
+	 * Create a image
+	 * @param post used to get the url for the picture
+	 * @return the image widget
+	 */
+	private Image fixPicture(final Post post) {
+		final Image img = new Image(post.getText());
+		if (img.getHeight() != 0) {
+			final int w = img.getWidth();
+			// aspectRatio is used to keep the same ratio between
+			// height and width when scaling
+			final float aspectRatio = (float) w / 
+					(float) img.getHeight();
+			// when the image is loaded scale it to match the layout
+			img.addLoadHandler(new LoadHandler() {
+				@Override
+				public void onLoad(LoadEvent event) {
+					img.setWidth("427px");
+					if (w > 427)
+						img.setHeight((int) (427/aspectRatio) + "px");
+					else if (w <= 427)
+						img.setHeight((int) (427*aspectRatio) + "px");
+				}
+			});
+		}
+		// when the image is clicked open a new tab with
+		// the picture url.
+		img.addClickHandler(new ClickHandler() {				
+			@Override
+			public void onClick(ClickEvent event) {
+				Window.open(post.getText(), post.getTitle(), "");
+			}
+		});
+		return img;
+	}
+	
+	/**
+	 * Create a embedded youtube player
+	 * @param post used to parse the string for the videoId
+	 * @return the youtube player widget
+	 */
+	private YouTubeEmbeddedPlayer fixVideo(Post post) {
+		String videoId = null;
+		String[] split = post.getText().split("v=");
+		if (split.length >= 2)
+			videoId = split[1];
+		youTubePlayer = new YouTubeEmbeddedPlayer(videoId);
+		youTubePlayer.setSize("427px", "320px");
+		youTubePlayer.embed();
+		youTubePlayer.setFullScreen(true);
+		
+		return youTubePlayer;
+	}
+	
+	/**
+	 * Create a label displaying the author of the post
+	 * that when clicked adds or removes that author from
+	 * the current users subscription list.
+	 * @param author of the post
+	 * @return the label
+	 */
+	private Label fixSubscribeLabel(final String author) {
+		final PopupPanel subPopup = new PopupPanel();
+		subPopup.setAutoHideEnabled(true);
+		final Label authorLabel = new Label("by: " + author);
+		
+		// unsubscribe/subscribe button
+		authorLabel.addClickHandler(new ClickHandler() {			
+			@Override
+			public void onClick(ClickEvent event) {
+				if (!subscribedTo(author)) {
+					// subscribe if the user isn't subscribed to this yet
+					async.subscribe(author, new AsyncCallback<Void>() {
+						@Override
+						public void onFailure(Throwable caught) {
+							Window.alert("makePostContentItem.subscribe" +
+									"failed \n" + caught);
+						}
+						@Override
+						public void onSuccess(Void result) {
+							subPopup.setWidget(new Label("You are now subscribed to " 
+									+ author));
+							subPopup.showRelativeTo(authorLabel);
+						}
+					});
+				} else {
+					// unsubscribe if the user is subscribed to this
+					async.unsubscribe(author, new AsyncCallback<Void>() {
+						@Override
+						public void onFailure(Throwable caught) {
+							Window.alert("makePostContentItem.unSubscribe" +
+									"failed \n" + caught);
+						}
+						@Override
+						public void onSuccess(Void result) {
+							subPopup.setWidget(new Label("You are no longer subscribed to " 
+									+ author));
+							subPopup.showRelativeTo(authorLabel);
+						}
+					});
+				}
+			}
+		});
+		authorLabel.setStyleName("postSmall");
+		return authorLabel;
+	}
+	
 	/** 
 	 * Loop through all postItems and compress
 	 */
@@ -497,6 +596,7 @@ public class ContentPanel extends FlexTable {
 		commentItem.setWidget(0, 1, authorLabel);
 		commentItem.setWidget(1, 1, dateLabel);
 		
+		// if the user is a admin, show the remove comment button
 		if (userIsAdmin) {
     		Button removeButton = makeRemoveCommentButton(comment.getId());
         	commentItem.getCellFormatter().setAlignment(0, 2, 
@@ -513,8 +613,14 @@ public class ContentPanel extends FlexTable {
 	 * Shows the dialog for making a new post
 	 */
 	public void newPostDialog() {
-		((DisclosurePanel) postsTable.getWidget(selectedPostNr, 0))
-			.setOpen(false);
+		// if there is any posts in the postsTable, compress the selected
+		// one while the newpost dialog is up.
+		try {
+			((DisclosurePanel) postsTable.getWidget(selectedPostNr, 0))
+				.setOpen(false);
+		} catch (IndexOutOfBoundsException e) {
+			// there are no posts
+		}
 		newPostDialog.center();
 	}
 
@@ -523,7 +629,7 @@ public class ContentPanel extends FlexTable {
 	 * @param post is needed to determine old values
 	 */
 	private void editPostDialog(Post post) {
-		editPostDialog = new EditPostDialog(post, currentUser);
+		editPostDialog = new EditPostDialog(post, currentUser.getEmail());
 		editPostDialog.center();
 		editPostDialog.addCloseHandler(new CloseHandler<PopupPanel>() {
 			@Override
