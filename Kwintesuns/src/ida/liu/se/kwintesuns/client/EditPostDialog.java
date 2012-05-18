@@ -5,10 +5,15 @@ import java.util.Date;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 
+/**
+ * The EditPostDialog extends the NewPostDialog and does 
+ * therefore have the same layout.
+ */
 public class EditPostDialog extends NewPostDialog {
 	
 	private final Button closeButton = new Button("Close");
@@ -26,7 +31,7 @@ public class EditPostDialog extends NewPostDialog {
 	
 	private final ServerServiceAsync async = GWT.create(ServerService.class);
 	
-	public EditPostDialog(final Post oldPost, final String currentUser) {
+	public EditPostDialog(final Post oldPost, final String currentUser, final boolean isAdmin) {
 
 		setText("Update post");
 		setGlassEnabled(true);
@@ -37,8 +42,8 @@ public class EditPostDialog extends NewPostDialog {
 		updateButton.getElement().setId("sendButton");
 		addItemToDialogPanel(updateButton, 15, 440);
 		addItemToDialogPanel(closeButton, 510, 440);
-				
-		fixBoxes();
+		
+		fixBoxes(isAdmin);
 		fixLayout();
 
 		getOldValues(oldPost);
@@ -80,8 +85,7 @@ public class EditPostDialog extends NewPostDialog {
 							new AsyncCallback<Long>() {
 								@Override
 								public void onFailure(Throwable caught) {
-									Window.alert("PostsPanel.editPost failed \n"
-											+ caught);
+									Window.alert("PostsPanel.editPost failed \n" + caught);
 								}
 								@Override
 								public void onSuccess(Long result) {
@@ -98,25 +102,36 @@ public class EditPostDialog extends NewPostDialog {
 		});
 	}
 	
+	/**
+	 * Checks if the user has written something in the update section
+	 * when editing the post, if so add a "updated by... " at the end
+	 * otherwise just set the text to "updated by... ".
+	 * @param p the post being updated.
+	 * @param currentUser the user updating the post.
+	 */
 	private void fixUpdateSection(Post p, String currentUser) {
-		if (getUpdateBoxValue().equals("Max 300 characters") || 
-				getUpdateBoxValue().equals("")) {
-			p.setUpdate(getUpdateBoxValue() + "\n Updated by "
-					+ currentUser + " at: "
-					+ new Date().toString());
-		} else {
-			p.setUpdate("Updated by "
-					+ currentUser + " at: "
-					+ new Date().toString());
+		if (!(getUpdateBoxValue().equals("Max 300 characters") || getUpdateBoxValue().equals(""))) {
+			// If its a video or picture post being updated, change the urls.
+			if (oldType.equals("video") || oldType.equals("picture"))
+				p.setText(getUpdateBoxValue());
+			else
+				p.addToText("\n\n Edit: " + getUpdateBoxValue());
 		}
+		p.setUpdate("Updated by " + currentUser + " at: " 
+				+ DateTimeFormat.getFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 	}
 	
+	/**
+	 * Help function called to store the post's old values for use in
+	 * the class.
+	 * @param post containing all the old values. 
+	 */
 	private void getOldValues(Post post) {
 		oldAuthor = post.getAuthor();
 		oldTitle = post.getTitle();
 		oldType = post.getType();
 		oldDescription = post.getDescription();
-		oldPicture = post.getPicture();
+		oldPicture = post.getThumbnail();
 		oldText = post.getText();
 		oldUpdate = post.getUpdate();
 		oldDate = post.getDate();

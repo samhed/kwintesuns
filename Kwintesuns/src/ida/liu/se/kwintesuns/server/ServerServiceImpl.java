@@ -40,11 +40,14 @@ ServerService {
 		ObjectifyService.register(Comment.class);
 	}
 	
-	/**
-	 * 	-------------------------------------MyUser services----------------------------------
-	 */
+	/***************************************************************************************
+	*									MyUser services
+	***************************************************************************************/
 
-	// Returns the user, if he or she is logged in
+	/**
+	 * Gets the user, if he or she is logged in.
+	 * @return the user.
+	 */
 	public MyUser getCurrentMyUser() {
 		MyUser myUser;
 		User user = userService.getCurrentUser();
@@ -52,86 +55,94 @@ ServerService {
 			try {
 				myUser = ofy.get(MyUser.class, user.getEmail());
 			} catch (IllegalArgumentException e) {
-				return null; //name cannot be null or empty
+				return null; // Name cannot be null or empty
 			} catch (NotFoundException e) {
-				// user not found in DB
-				return makeMyUser(user);
-			}
-			
+				return makeMyUser(); // User not found in DB
+			}			
 			return myUser;
 		} else {
-			// no user logged in
-			return null;
+			return null; // No user logged in
 		}
 	}
 
-	// Add user to the database if it's not already there
-	private MyUser makeMyUser(User user) {
-		
+	/**
+	 * Make a new MyUser and add it to the datastore
+	 * if the user is logged in.
+	 * @return the MyUser object if successful
+	 */
+	private MyUser makeMyUser() {		
 		if (userService.isUserLoggedIn()) {
-			MyUser myUser = new MyUser(user.getEmail(),
-					userService.isUserAdmin());
+			MyUser myUser = new MyUser(userService.getCurrentUser().getEmail(), userService.isUserAdmin());
 			ofy.put(myUser);
 			return myUser;
 		} else {
 			return null;
 		}
 	}
-
-	// Add subscription and update the user in the datastore
-	public void subscribe(String emailToSubscribeTo) {
-		
-		MyUser u = getCurrentMyUser();
-		
-		if (u != null) {
-			ofy.delete(MyUser.class, u.getEmail()); 	//delete old user
-			u.addSubscription(emailToSubscribeTo); 			//update user
-			ofy.put(u); 									//add updated user
-		}
-	}
 	
-	// Remove subscription and update the user in the datastore
-	public void unsubscribe(String emailToUnsubscribeFrom) {
-		
-		MyUser u = getCurrentMyUser();
-		
-		if (u != null) {
-			ofy.delete(MyUser.class, u.getEmail()); 	//delete old user
-			u.removeSubscription(emailToUnsubscribeFrom); 	//update user
-			ofy.put(u); 									//add updated user
-		}
-	}
-		
 	/**
-	 * 	-------------------------------------Post services----------------------------------
+	 * Add a subscription and update the user in the datastore.
+	 * @param emailToSubscribeTo
 	 */
+	public void subscribe(String emailToSubscribeTo) {		
+		MyUser u = getCurrentMyUser();		
+		if (u != null) {
+			u.addSubscription(emailToSubscribeTo);
+			ofy.put(u);
+		}
+	}
 	
-	// Store a new post in the datastore
+	/**
+	 * Remove the subscription and update the user in the datastore.
+	 * @param emailToUnsubscribeFrom
+	 */
+	public void unsubscribe(String emailToUnsubscribeFrom) {		
+		MyUser u = getCurrentMyUser();		
+		if (u != null) {
+			u.removeSubscription(emailToUnsubscribeFrom);
+			ofy.put(u);
+		}
+	}
+	
+	/***************************************************************************************
+	*									Post services
+	***************************************************************************************/
+	
+	/**
+	 * Store a new post in the datastore.
+	 * @param post needed to be able to set author and date
+	 */
 	public Long storePost(Post post) {
-		
         if (post != null) {
         	if (userService.isUserLoggedIn())
         		post.setAuthor(userService.getCurrentUser().getEmail());
         	else
         		post.setAuthor("Anonymous");
+        	
     		post.setDate(new Date());
     		try {
-    			checkPostLimit();    				
+    			checkPostLimit();
     			return ofy.put(post).getId();
     		} catch (NotFoundException e) {
-    			return null;
+    			return null; // getId failed
     		}
+        } else {
+        	return null;
         }
-        return null;
 	}
 
-	// Check if the number of posts have reached its limit.
+	/**
+	 * Check if the number of posts have reached its limit.
+	 * Remove the oldest posts until the number of posts is
+	 * within the limit again.
+	 */
 	private void checkPostLimit() {
 		Query<Post> q = ofy.query(Post.class).order("date");
 		if (q.count() >= POSTLIMIT) {
 			Iterable<com.googlecode.objectify.Key<Post>> allKeys = q.fetchKeys();
 			Post p;
 			
+			int numberOfPostsToRemove = q.count() - POSTLIMIT;
 			// Loop through the query result and remove the first one
 			for (com.googlecode.objectify.Key<Post> k : allKeys) {
 				try {
@@ -141,32 +152,45 @@ ServerService {
 					// This entry was probably recently removed - skip it
 					continue;
 				}
-				break;
+				numberOfPostsToRemove--;
+				if (numberOfPostsToRemove == 0)
+					break;
 			}
 		}
 	}
 
-	// Delete a post stored in the datastore
-	public void deletePost(Long postId) throws NotFoundException {
-		
+	/**
+	 * Delete a post, and all the comments linked to
+	 * that post, from the datastore.
+	 * @param postId the id of the post to be removed.
+	 * @throws NotFoundException the post to be removed was not found.
+	 */
+	public void deletePost(Long postId) throws NotFoundException {		
 		Post p = null;
+		// Check if the post can be found.
 		try {
 			p = ofy.get(Post.class, postId);
 		} catch (NotFoundException e) {
-			throw e;
+			throw e; // Maybe someone was faster than you?
 		}
 		ofy.delete(p);
 		
 		// Delete all comments linked to the deleted post
 		ArrayList<Comment> commentList = getComments(p.getId());
-        for (Comment c : commentList) {
+        for (Comment c : commentList)
         	deleteComment(c.getId());
-        }
 	}
 
-	// Update a post stored in the datastore
+	/**
+	 * Edit a post stored in the datastore.
+	 * @param oldPostId the id of the post to be edited.
+	 * @param updatedPost contents of the edited post.
+	 * @throws NotFoundException the post to be edited was not found.
+	 * @return the id of the edited post.
+	 */
 	public Long editPost(Long oldPostId, Post updatedPost) throws NotFoundException {
 		Post oldPost;
+		// Get the old post.
 		try {
 			oldPost = ofy.get(Post.class, oldPostId);
 		} catch (NotFoundException e) {
@@ -174,9 +198,9 @@ ServerService {
 			throw e;
 		}
 
-		// Store the new post in the datastore
+		// Store the new post in the datastore.
 		Key<Post> updatedKey = ofy.put(updatedPost);
-		// When being stored in the datastore it will get its id
+		// When being stored in the datastore it will get its id.
 		try {
 			updatedPost = ofy.get(updatedKey);
 		} catch (NotFoundException e) {
@@ -195,18 +219,23 @@ ServerService {
         return updatedPost.getId(); 
 	}
 	
-	// Flag a post and update the database
+	/**
+	 * Flag a post and update it in the database.
+	 * @param postId the id of the post that will get flagged.
+	 * @param flagger the email of the user who is flagging this post.
+	 */
 	public void flagPost(Long postId, String flagger) {
 		Post p;
+		// Get the post.
 		try {
 			p = ofy.get(Post.class, postId);
-		} catch (NotFoundException e) {
-			// Don't continue if the post wasn't found
-			return;
+		} catch (NotFoundException e) {			
+			return; // Don't continue if the post wasn't found
 		}
 		
+		// Check if this user can flag the post.
 		if (p.getFlagList().contains(flagger))
-			return; // the user already flagged this post
+			return; // The user already flagged this post
 		else
 			p.addToFlagList(flagger);
 
@@ -218,21 +247,25 @@ ServerService {
 			ofy.put(p);
 	}
 
-	// Returns all posts
+	/**
+	 * Queries the datastore for all the posts and
+	 * sort them by date.
+	 * @return all the posts
+	 */
 	public ArrayList<Post> getAllPosts() {		
 		
-		// sorts the query by date in descending order
+		// Sorts the query by date in descending order
 		Iterable<com.googlecode.objectify.Key<Post>> allKeys = 
 				ofy.query(Post.class).order("-date").fetchKeys();
 		ArrayList<Post> posts = new ArrayList<Post>();
 		Post p;
 		
-		// loop through the query result and add to the array
+		// Loop through the query result and add to the array
 		for (com.googlecode.objectify.Key<Post> k : allKeys) {
 			try {
 				p = ofy.get(k);
 			} catch (NotFoundException e) {
-				//this entry was probably recently removed - skip it
+				// This entry was probably recently removed -> skip it
 				continue;
 			}
 			posts.add(p);
@@ -240,18 +273,23 @@ ServerService {
 		return posts;
 	}
 	
-	// Returns all posts that fit the filter
-	public ArrayList<Post> fetchPosts(String filterBy, ArrayList<String> filter) {	
-		
+	/**
+	 * Queries the datastore for all the posts matching 
+	 * the filter and sort the queries by date.
+	 * @param filterBy which field to filter by
+	 * @param filter an array containing all the filters
+	 * @return all the posts matching the filter.
+	 */
+	public ArrayList<Post> fetchPosts(String filterBy, ArrayList<String> filter) {		
 		Query<Post> q = null;
 		ArrayList<Post> posts = new ArrayList<Post>();
-		// Loop through the list of filters and query the db using each one
+		// Loop through the list of filters and query the datastore using each one
 		for (int i = 0; i < filter.size(); i++) {
 			try {
-				// sorts the query by date in descending order
+				// Sorts the query by date in descending order
 				q = ofy.query(Post.class).filter(filterBy, filter.get(i)).order("-date");
 			} catch (DatastoreNeedIndexException e) {
-				// the query didn't find any matching posts for this filter - skip it
+				// The query didn't find any matching posts for this filter - skip it
 				continue;
 			}
 			// Loop through the query results and add to the array
@@ -261,38 +299,41 @@ ServerService {
 		return posts;
 	}
 	
-	/**
-	 * 	-------------------------------------Comment services----------------------------------
-	 */
+	/***************************************************************************************
+	*									Comment services
+	***************************************************************************************/
 	
-	// Store a new comment in the datastore
+	/**
+	 * Store a new comment in the datastore.
+	 * @param text of the comment
+	 * @param postId the id which the comment belongs to
+	 * @return the id of the updated post
+	 */
 	public Long storeComment(String text, Long postId) {
 		
 		Post oldPost;
-		// Check if the comment is linked to a existing post
+		// Get the post which the comment is going to be linked to.
     	try {
 	    	oldPost = ofy.get(Post.class, postId);
     	} catch (NotFoundException e) {
-    		// If the comment isn't linked to any existing post
-    		// don't continue
-    		return null;
+    		return null; // Don't continue.
     	}
     	
-    	// Update the date of the post which the comment belongs to
-    	// to match the latest activity
+    	// Update the date of the post which the comment 
+    	// belongs to to match the latest activity
 		Post updatedPost = new Post(oldPost.getTitle(),
 				oldPost.getType(), oldPost.getDescription(), 
-				oldPost.getPicture(), oldPost.getText());
+				oldPost.getThumbnail(), oldPost.getText());
     	updatedPost.setDate(new Date());
     	updatedPost.setAuthor(oldPost.getAuthor());
     	Long updatedPostId; 
     	try {
     		updatedPostId = editPost(postId, updatedPost);
-    	} catch (NotFoundException e) {
-    		// Don't continue if the edit failed
-    		return null;
+    	} catch (NotFoundException e) {    		
+    		return null; // Don't continue if the edit failed
     	}
     	
+    	// Create the new comment.
 		Comment comment = new Comment(text, updatedPostId);
     	comment.setDate(updatedPost.getDate());
     	if (userService.isUserLoggedIn())
@@ -302,10 +343,16 @@ ServerService {
     	
     	checkCommentLimit(comment.getPostId());
     	ofy.put(comment);
+    	
     	return updatedPostId;
 	}
 
-	// Check if the number of comments have reached its limit.
+	/**
+	 * Check if the number of comments have reached its limit.
+	 * Remove the oldest comments until the number of comments 
+	 * is within the limit again.
+	 * @param postId the id of the post which the comment is linked to
+	 */
 	private void checkCommentLimit(long postId) {
 		Query<Comment> q =
 				ofy.query(Comment.class).filter("postId", postId).order("date");
@@ -313,6 +360,7 @@ ServerService {
 			Iterable<com.googlecode.objectify.Key<Comment>> allKeys = q.fetchKeys();
 			Comment c;
 			
+			int numberOfCommentsToRemove = q.count() - POSTLIMIT;
 			// Loop through the query result and remove the first one
 			for (com.googlecode.objectify.Key<Comment> k : allKeys) {
 				try {
@@ -322,72 +370,88 @@ ServerService {
 					// This entry was probably recently removed - skip it
 					continue;
 				}
-				break;
+				numberOfCommentsToRemove--;
+				if (numberOfCommentsToRemove == 0)
+					break;
 			}
 		}
 	}
 
-	// Delete a comment from the datastore
+	/**
+	 * Delete a comment from the datastore.
+	 * @param commentId the id of the comment to be removed
+	 * @throws NotFoundException the comment to be removed was not found.
+	 */
 	public void deleteComment(Long commentId) throws NotFoundException {
 		Comment c;
+		// Check if the comment can be found.
 		try {
 			c = ofy.get(Comment.class, commentId);
 		} catch (NotFoundException e) {
-			throw e;
+			throw e; // Maybe someone was faster than you?
 		}
 		ofy.delete(c);
 	}
 
-	// Returns all comments belonging to the post with postId
+	/**
+	 * Returns all comments belonging to the post with postId
+	 * @param postId the id of the post
+	 * @return all the comments to that post
+	 */
 	public ArrayList<Comment> getComments(Long postId) {
-
-		// sorts the query by date in descending order
+		// Sorts the query by date in descending order
 		Iterable<com.googlecode.objectify.Key<Comment>> allKeys = 
 				ofy.query(Comment.class).filter("postId", postId).order("-date").fetchKeys();
 		ArrayList<Comment> comments = new ArrayList<Comment>();
 		Comment c;
 
-		//Loop through the query results and add to the array
+		// Loop through the query results and add to the array
 		for (com.googlecode.objectify.Key<Comment> k : allKeys) {
 			try {
 				c = ofy.get(k);
 			} catch (NotFoundException e) {
-				//this entry was probably recently removed - skip it
-				continue;
+				continue; // This entry was probably recently removed -> skip it
 			}
 			comments.add(c);
-		}		
+		}
 		return comments;
 	}
 	
-	// Make sure that the comments are linked to the correct post
+	/**
+	 * Make sure that the comments are linked to the correct post
+	 * @param commentId the id of the comment
+	 * @param newPostId the id of the post it is supposed to be linked to
+	 */
 	private void updatePostLink(Long commentId, Long newPostId) {
 		Comment oldComment;
 		try {
 			oldComment = ofy.get(Comment.class, commentId);
-		} catch (NotFoundException e) {
-			// Don't continue if a comment with that id wasn't found
-			return;
+		} catch (NotFoundException e) {			
+			return; // Don't continue if a comment with that id wasn't found
 		}
-		Comment newComment = 
-				new Comment(oldComment.getText(), newPostId);
+		Comment newComment = new Comment(oldComment.getText(), newPostId);
 		newComment.setAuthor(oldComment.getAuthor());
 		newComment.setDate(oldComment.getDate());
 		ofy.delete(oldComment);
 		ofy.put(newComment);
 	}
 
+	/**
+	 * Flag a comment and update it in the database.
+	 * @param commentId the id of the comment to be flagged
+	 * @param flagger the email of the user who is flagging this comment
+	 */
 	public void flagComment(Long commentId, String flagger) {
 		Comment c;
+		// Get the comment.
 		try {
 			c = ofy.get(Comment.class, commentId);
 		} catch (NotFoundException e) {
-			// Don't continue if the comment wasn't found
-			return;
+			return; // Don't continue if the comment wasn't found
 		}
 		
 		if (c.getFlagList().contains(flagger))
-			return; // the user already flagged this comment
+			return; // The user already flagged this comment
 		else
 			c.addToFlagList(flagger);
 

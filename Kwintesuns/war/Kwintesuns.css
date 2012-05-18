@@ -1,20 +1,22 @@
-/** Add css rules here for your application. */
-
+/***********************************************************
+*                         Header
+***********************************************************/
 .topPanel {
 	background-color			: 	teal;
 }
-
-.bgStyle {
-	background-color			: 	#F2F2F2;
+.headerStyle {
+	border						: 	5px solid teal;
+	font-size					: 	24pt;
+	font-weight					: 	bold;
+	font-family					: 	Arial;
+	color						: 	#FAFAFA;
+	cursor						: 	hand;
+	cursor						: 	pointer;
 }
-
-.redBG {
-	background-color			: 	red;
+.topBannerText {
+	color						: 	#FAFAFA;
+	font-weight					: 	bold;
 }
-.yellowBG {
-	background-color			: 	yellow;
-}
-
 
 /***********************************************************
 *                          MenuBar
@@ -52,10 +54,26 @@
     border						:	1px solid #6299c5;
     color						:	#fff;
 }
+.refreshMenu {
+	border						: 	none;
+    cursor						:	hand;
+	cursor						: 	pointer;
+    background-image			:	url('img/refreshMenu.png');
+}
 
-.topBannerText {	
-	color						: 	#FAFAFA;
-	font-weight					: 	bold;
+/***********************************************************
+*                          Post
+***********************************************************/
+.postPanel {
+	padding						:	2px 2px 2px 0px;
+    border						:	1px solid #cecece;
+    border-top					:	1px solid #d0d0d0;
+    border-left					:	1px solid #d0d0d0;
+}
+.postItem {
+    border						:	2px solid #cecece;
+    border-top					:	2px solid #d0d0d0;
+    border-left					:	2px solid #d0d0d0;
 }
 .postTitle {
 	color						:	black;
@@ -72,73 +90,45 @@
 	font-size					:	8pt;
 }
 
-.postItem {
-    border						:	2px solid #cecece;
-    border-top					:	2px solid #d0d0d0;
-    border-left					:	2px solid #d0d0d0;
-}
-.commentItem {
-    background-color			:	#F9F9F9;
-    border-left					:	2px solid #d0d0d0;
-}
-
+/***********************************************************
+*                        Comment
+***********************************************************/
 .commentPanel {
 	padding						:	2px 2px 2px 2px;
     border						:	1px solid #cecece;
     border-top					:	1px solid #d0d0d0;
     border-left					:	0px solid #d0d0d0;
 }
-.postPanel {
-	padding						:	2px 2px 2px 0px;
-    border						:	1px solid #cecece;
-    border-top					:	1px solid #d0d0d0;
-    border-left					:	1px solid #d0d0d0;
+.commentItem {
+    background-color			:	#F9F9F9;
+    border-left					:	2px solid #d0d0d0;
 }
 
-.headerStyle {
-	border						: 	5px solid teal;
-	font-size					: 	24pt;
-	font-weight					: 	bold;
-	font-family					: 	Arial;
-	color						: 	#FAFAFA;
-	cursor						: 	hand;
-	cursor						: 	pointer;
-}
-
+/***********************************************************
+*                       DialogPanel
+***********************************************************/
 .dialogPanel {
 	margin						: 	5px;
  	position					: 	relative;
  	overflow					: 	scroll;
 }
-
-textarea {
-    resize						: 	none;
-}
-
-/** Set ids using widget.getElement().setId("idOfElement") */
 #closeButton {
   	margin						: 	15px 6px 6px;
 }
-/** Set ids using widget.getElement().setId("idOfElement") */
 #sendButton {
   	margin						: 	15px 6px 6px;
 }
 
-.updateItemButton {
-	border						: 	none;
-    cursor						:	hand;
-	cursor						: 	pointer;
-    background-image			:	url('img/updateItem.png');
-}
-
-.updateButton {
+/***********************************************************
+*                         Buttons
+***********************************************************/
+.refreshButton {
     cursor						:	hand;
 	cursor						: 	pointer;
 	border						: 	none;
-    background-image			:	url('img/update.png');
+    background-image			:	url('img/refresh.png');
     padding						:	0 0 0 0;
 }
-
 .editButton {
     cursor						:	hand;
 	cursor						: 	pointer;
@@ -146,7 +136,6 @@ textarea {
     background-image			:	url('img/edit.png');
     padding						:	0 0 0 0;
 }
-
 .removeButton {
     cursor						:	hand;
 	cursor						: 	pointer;
@@ -154,15 +143,6 @@ textarea {
     background-image			:	url('img/remove.gif');
     padding						:	0 0 0 0;
 }
-
-.flagButton {
-    cursor						:	hand;
-	cursor						: 	pointer;
-	border						: 	none;
-    background-image			:	url('img/flag.png');
-    padding						:	0 0 0 0;
-}
-
 .removeCommentButton {
     cursor						:	hand;
 	cursor						: 	pointer;
@@ -171,7 +151,13 @@ textarea {
     background-color			:	#F9F9F9;
     padding						:	0 0 0 0;	
 }
-
+.flagButton {
+    cursor						:	hand;
+	cursor						: 	pointer;
+	border						: 	none;
+    background-image			:	url('img/flag.png');
+    padding						:	0 0 0 0;
+}
 .flagCommentButton {
     cursor						:	hand;
 	cursor						: 	pointer;
@@ -181,6 +167,18 @@ textarea {
     padding						:	0 0 0 0;	
 }
 
+/***********************************************************
+*                           Misc
+***********************************************************/
+.bgStyle {
+	background-color			: 	#F2F2F2;
+}
 .watermark {
    color						:	DarkGray;
+}
+textarea {
+    resize						: 	none;
+}
+.redBG {
+	background-color			: 	red;
 }

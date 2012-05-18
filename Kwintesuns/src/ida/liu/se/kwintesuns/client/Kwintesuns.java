@@ -11,6 +11,9 @@ import com.google.gwt.user.client.ui.RootLayoutPanel;
  */
 public class Kwintesuns implements EntryPoint {
 	
+	// The mainPanel contains the content- and topPanel.
+	// The contentPanel contains the posts and the comments.
+	// The topPanel contains the header and menus.
 	private FlexTable mainPanel = new FlexTable();
 	private ContentPanel contentPanel = new ContentPanel();
 	private final TopPanel topPanel = new TopPanel(contentPanel);
@@ -28,7 +31,7 @@ public class Kwintesuns implements EntryPoint {
 		mainPanel.getCellFormatter().setHeight(0, 0, "90px");
 		mainPanel.getRowFormatter().setVerticalAlign(1, HasVerticalAlignment.ALIGN_TOP);
 		mainPanel.setCellSpacing(0);
-				
+		
 		mainPanel.setWidget(0,0, topPanel);
 		mainPanel.setWidget(1,0, contentPanel);
 		

@@ -46,7 +46,7 @@ public class NewPostDialog extends DialogBox {
 	public NewPostDialog() {
 
 		setText("New post");
-		setGlassEnabled(true);		
+		setGlassEnabled(true);
 		setAnimationEnabled(true);
 		
 		// We can set the id of a widget by accessing its Element
@@ -55,10 +55,10 @@ public class NewPostDialog extends DialogBox {
 		addItemToDialogPanel(postButton, 15, 440);
 		addItemToDialogPanel(closeButton, 510, 440);
 		
-		fixBoxes();
+		fixBoxes(true);
 		fixLayout();
 		
-		// Add a handler to close the NewPostDialog
+		// Add a handler for when closing the NewPostDialog
 		closeButton.addClickHandler(new ClickHandler() {
 			public void onClick(ClickEvent event) {
 				newPostId = null;
@@ -76,8 +76,7 @@ public class NewPostDialog extends DialogBox {
 					    @Override
 					    public void onFailure(Throwable caught) {
 							newPostId = null;
-					        Window.alert(
-					        		"newPost().storePost failed \n" + caught);
+					        Window.alert("newPost().storePost failed \n" + caught);
 					    }
 					    @Override
 					    public void onSuccess(Long result) {
@@ -95,14 +94,35 @@ public class NewPostDialog extends DialogBox {
 		});
 	}
 	
-	public void fixBoxes() {
-		typeBox.clear();	
+	/**
+	 * Set up attributes for all the fields 
+	 * and boxes in the NewPostDialog.
+	 * If the user is an admin, allow editing of
+	 * all fields.
+	 * @param if the user is an admin or not
+	 */
+	public void fixBoxes(boolean isAdmin) {
+		
+		// Set readOnly or disable the fields 
+		// and boxes depending on isAdmin
+		typeBox.setEnabled(isAdmin);
+		titleBox.setReadOnly(!isAdmin);
+		pictureBox.setReadOnly(!isAdmin);
+		descriptionBox.setReadOnly(!isAdmin);
+		textBox.setReadOnly(!isAdmin);
+		
+		typeBox.clear();
 		typeBox.addItem("video");
 		typeBox.addItem("picture");
 		typeBox.addItem("news");
 		typeBox.addItem("thought");
 		typeBox.setVisibleItemCount(1);
-		typeBox.addChangeHandler(new ChangeHandler() {			
+		
+		// The textBox is used for all four types of posts.
+		// * Video: used to pass the url of the video
+		// * Picture: used to pass the url of the image
+		// * News & Thoughts: the main text of the post
+		typeBox.addChangeHandler(new ChangeHandler() {
 			@Override
 			public void onChange(ChangeEvent event) {
 				int i = typeBox.getSelectedIndex();
@@ -129,6 +149,9 @@ public class NewPostDialog extends DialogBox {
 		textBox.getElement().setAttribute("maxlength", "600"); //for chrome
 	}
 	
+	/**
+	 * Places the fields and boxes into the dialogPanel.
+	 */
 	public void fixLayout() {		
 		dialogPanel.setSize("600px", "500px");
 		dialogPanel.setStyleName("dialogPanel");
@@ -146,19 +169,9 @@ public class NewPostDialog extends DialogBox {
 		setWidget(dialogPanel);
 	}
 	
-	public Post getTextBoxValues() {
-		return new Post(
-			titleBox.getText(),
-			typeBox.getItemText(typeBox.getSelectedIndex()),
-			descriptionBox.getText(),
-			pictureBox.getText(),
-			textBox.getText());
-	}
-	
-	public String getUpdateBoxValue() {
-		return updateBox.getText();
-	}
-	
+	/**
+	 * Modifies the dialogPanel to contain a update field.
+	 */
 	public void addUpdateSection() {
 		textBox.setSize("546px", "120px");
 		
@@ -171,42 +184,46 @@ public class NewPostDialog extends DialogBox {
 		dialogPanel.add(updateBox, 17, 342);
 	}
 	
+	/**
+	 * A help function for adding items to the dialogPanel.
+	 * @param w the widget to add
+	 * @param left offset from the left side of the panel
+	 * @param top offset from the top of the panel
+	 */
 	public void addItemToDialogPanel(Widget w, int left, int top) {
 		dialogPanel.add(w, left, top);
 	}
 	
-	// Check if the info specified by the user is OK
+	/**
+	 * Check if the info specified by the user is OK
+	 * @return whether it is OK or not
+	 */
 	public boolean newPostFormIsOK() {
-		return descriptionBox.isWithinLimit() && textBox.isWithinLimit()
-				&& !titleBox.getText().isEmpty() && !descriptionBox.isEmpty()
+		return descriptionBox.isWithinLimit() 
+				&& textBox.isWithinLimit()
+				&& !titleBox.getText().isEmpty() 
+				&& !descriptionBox.isEmpty()
 				&& !textBox.isEmpty();
 	}
 	
-	public void setTypeBoxSelected(int i) {
-		typeBox.setSelectedIndex(i);
-	}
+	// Setters and getters for the fields and boxes:
 	
-	public void setTitleText(String s) {
-		titleBox.setText(s);
-	}
-	
-	public void setDescriptionText(String s) {
-		descriptionBox.setText(s);
-	}
-	
-	public void setPictureText(String s) {
-		pictureBox.setText(s);
-	}
-	
-	public void setTextBoxText(String s) {
-		textBox.setText(s);
-	}
-	
-	public void setUpdateText(String s) {
-		updateBox.setText(s);
-	}
+	public void setTypeBoxSelected(int i) {typeBox.setSelectedIndex(i);}	
+	public void setTitleText(String s) {titleBox.setText(s);}	
+	public void setDescriptionText(String s) {descriptionBox.setText(s);}	
+	public void setPictureText(String s) {pictureBox.setText(s);}
+	public void setTextBoxText(String s) {textBox.setText(s);}	
+	public void setUpdateText(String s) {updateBox.setText(s);}
 
-	public Long getNewPostId() {
-		return newPostId;
+	public Post getTextBoxValues() {
+		return new Post(
+			titleBox.getText(),
+			typeBox.getItemText(typeBox.getSelectedIndex()),
+			descriptionBox.getText(),
+			pictureBox.getText(),
+			textBox.getText());
 	}
+	
+	public String getUpdateBoxValue() {return updateBox.getText();}
+	public Long getNewPostId() {return newPostId;}
 }

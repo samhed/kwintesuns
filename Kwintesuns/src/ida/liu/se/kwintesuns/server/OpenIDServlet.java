@@ -21,10 +21,12 @@ public class OpenIDServlet extends HttpServlet {
 
         resp.setContentType("text/html");
 
-        if (user != null) {
-            resp.sendRedirect(userService.createLogoutURL("/"));
-        } else {
+        // Depending if the user is logged in or not 
+        // a login or logout will be created with the
+        // return address attached(top level).
+        if (user == null)
         	resp.sendRedirect(userService.createLoginURL("/"));
-        }
+        else
+        	resp.sendRedirect(userService.createLogoutURL("/"));
     }
 }
