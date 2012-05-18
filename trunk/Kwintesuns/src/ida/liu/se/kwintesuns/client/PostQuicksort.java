@@ -2,15 +2,14 @@ package ida.liu.se.kwintesuns.client;
 
 import java.util.ArrayList;
 
-public class Quicksort  {
+public class PostQuicksort  {
 	private ArrayList<Post> list;
 	private int number;
 
 	public void sort(ArrayList<Post> postList) {
 		// Check for empty or null array
-		if (postList == null || postList.size()==0){
+		if (postList == null || postList.size()==0)
 			return;
-		}
 		this.list = postList;
 		number = postList.size();
 		quicksort(0, number - 1);
@@ -30,14 +29,11 @@ public class Quicksort  {
 		while (i <= j) {
 			// If the current date from the left list is after the pivot
 			// element's date then get the next element from the left list
-			while (list.get(i).getDate().after(pivot.getDate())) {
-				i++;
-			}
+			while (list.get(i).getDate().after(pivot.getDate())) {i++;}
+			
 			// If the current date from the right list is before the pivot
 			// element's date then get the next element from the right list
-			while (list.get(j).getDate().before(pivot.getDate())) {
-				j--;
-			}
+			while (list.get(j).getDate().before(pivot.getDate())) {j--;}
 
 			// If we have found a date in the left list which is before 
 			// the pivot element's date and if we have found a date in the 

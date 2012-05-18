@@ -12,7 +12,6 @@ import com.google.gwt.user.client.rpc.IsSerializable;
 	
 	@Id	private Long id;
 
-	// poster and date is set when the post is stored in the database
 	private String author;
 	private String text;
 	private Date date;
@@ -21,7 +20,7 @@ import com.google.gwt.user.client.rpc.IsSerializable;
 
 	public Comment() {}
 
-	// should only be called from the serverside
+	// The poster and date is set when the post is stored in the database
 	public Comment(String txt, Long pid) {
 		this.text = txt;
 		this.postId = pid;
@@ -29,47 +28,17 @@ import com.google.gwt.user.client.rpc.IsSerializable;
 		this.flagList.add("test@example.com");
 	}
 
-	// should only be called from the serverside
-	public void setDate(Date date) {
-		this.date = date;
-	}
-
-	// should only be called from the serverside
-	public void setAuthor(String author) {
-		this.author = author;
-	}
-
-	// should only be called from the serverside
-	public void setPostId(Long commentId) {
-		this.postId = commentId;
-	}
-
-	// should only be called from the serverside
-	public void addToFlagList(String flagger) {
-		this.flagList.add(flagger);
-	}
+	// Should only be called from the serverside:
+	public void addToFlagList(String flagger) {this.flagList.add(flagger);}
+	public void setDate(Date date) {this.date = date;}
+	public void setAuthor(String author) {this.author = author;}
+	public void setPostId(Long commentId) {this.postId = commentId;}
 	
-	public String getText() {
-		return text;
-	}
-
-	public Date getDate() {
-		return date;
-	}
-
-	public String getAuthor() {
-		return author;
-	}
-
-	public Long getPostId() {
-		return postId;
-	}
-
-	public Long getId() {
-		return id;
-	}
-
-	public ArrayList<String> getFlagList() {
-		return flagList;
-	}
+	// Getters:
+	public String getText() {return text;}
+	public Date getDate() {return date;}
+	public String getAuthor() {return author;}
+	public Long getPostId() {return postId;}
+	public Long getId() {return id;}
+	public ArrayList<String> getFlagList() {return flagList;}
 }
