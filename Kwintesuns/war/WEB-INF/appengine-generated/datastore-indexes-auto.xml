@@ -1,14 +1,14 @@
-<!-- Indices written at Fri, 18 May 2012 16:57:09 CEST -->
+<!-- Indices written at Sat, 19 May 2012 15:46:56 CEST -->
 
 <datastore-indexes>
 
-    <!-- Used 63 times in query history -->
+    <!-- Used 13 times in query history -->
     <datastore-index kind="Comment" ancestor="false" source="auto">
         <property name="postId" direction="asc"/>
         <property name="date" direction="desc"/>
     </datastore-index>
 
-    <!-- Used 2 times in query history -->
+    <!-- Used 1 time in query history -->
     <datastore-index kind="Comment" ancestor="false" source="auto">
         <property name="postId" direction="asc"/>
         <property name="date" direction="asc"/>

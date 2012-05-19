@@ -34,19 +34,14 @@ import com.google.youtube.client.YouTubeEmbeddedPlayer;
 
 public class ContentPanel extends FlexTable {
 
+	private final ServerServiceAsync async = GWT.create(ServerService.class);
 	private FlexTable commentsTable = new FlexTable();
-	private WatermarkedTextArea newCommentTextArea = new WatermarkedTextArea();
-	private YouTubeEmbeddedPlayer youTubePlayer;
+	private FlexTable postsTable = new FlexTable();
 	private ArrayList<Post> postList;
 	private int selectedPostNr = 0;
 	private Post selectedPost;
 	private MyUser currentUser;
 	private boolean userIsAdmin = false;
-	private FlexTable postsTable = new FlexTable();
-	private NewPostDialog newPostDialog = null;
-	private EditPostDialog editPostDialog = null;
-	private final ServerServiceAsync async = 
-			GWT.create(ServerService.class);
 
 	// mapping post types with their default image urls
 	private static final Map<String, String> defaultTypeImageUrls;
@@ -59,61 +54,11 @@ public class ContentPanel extends FlexTable {
 		defaultTypeImageUrls.put("error", "img/error.png");
 	}
 	
-	// userIsAdmin and currentUser is used when checking whether 
-	// to display the remove and edit buttons
-	private AsyncCallback<MyUser> checkUserCallback = new AsyncCallback<MyUser>() {
-		@Override
-		public void onFailure(Throwable caught) {
-			Window.alert("PostsPanel.checkUserCallback failed \n" + caught);
-		}
-		@Override
-		public void onSuccess(MyUser result) {
-			if (result != null) {
-				userIsAdmin = result.isAdministrator();
-				currentUser = result;
-			}
-		}
-    };
-	
     /**
      * The panel containing the posts and the comments.
      */
 	public ContentPanel() {
 		
-		this.newPostDialog = new NewPostDialog();
-		this.newPostDialog.addCloseHandler(new CloseHandler<PopupPanel>() {
-			@Override
-			public void onClose(CloseEvent<PopupPanel> event) {
-				// If a new post was stored
-				if (newPostDialog.getNewPostId() != null) {
-					// Adds a temporary post to skip another servercall
-					Post p = newPostDialog.getTextBoxValues();
-					p.setId(newPostDialog.getNewPostId());
-					String author;
-					if (currentUser == null)
-						author = "Anonymous";
-					else 
-						author = currentUser.getEmail();
-					p.setAuthor(author);
-					p.setDate(new Date());
-					postList.add(0, p);
-					updatePostList(postList);
-				} else {
-					((DisclosurePanel) postsTable.getWidget(selectedPostNr, 0)).setOpen(true);
-				}
-			}
-		});
-
-		// The postsTable contains all the posts.
-		postsTable.setSize("100%", "100%");
-		
-		// The postPanel is a ScrollPanel containing the postTable.
-		ScrollPanel postsPanel = new ScrollPanel();
-		postsPanel.setSize("100%", "100%");
-		postsPanel.add(postsTable);	
-		postsPanel.setStyleName("postPanel");		
-		
-		// Format the ContentPanel.
 		getFlexCellFormatter().setAlignment(0, 0,
 				HasHorizontalAlignment.ALIGN_LEFT, 
 				HasVerticalAlignment.ALIGN_TOP);
@@ -122,10 +67,28 @@ public class ContentPanel extends FlexTable {
 				HasVerticalAlignment.ALIGN_TOP);
 		getColumnFormatter().setWidth(0, "50%");
 		
-		setWidget(0, 0, postsPanel);
+		setWidget(0, 0, postPanel());
 		setWidget(0, 1, commentPanel());
 		
 		setSize("100%", "100%");
+	}
+	
+	/**
+	 * The panel containing the posts.
+	 * @return the postPanel.
+	 */	
+	private ScrollPanel postPanel() {
+		
+		// The postsTable contains all the posts.
+		postsTable.setSize("100%", "100%");
+		
+		// The postPanel is a ScrollPanel containing the postTable.
+		ScrollPanel postPanel = new ScrollPanel();
+		postPanel.setSize("100%", "100%");
+		postPanel.add(postsTable);	
+		postPanel.setStyleName("postPanel");
+		
+		return postPanel;
 	}
 	
 	/**
@@ -148,6 +111,7 @@ public class ContentPanel extends FlexTable {
 		
 		// The newCommentTextArea is the field (TextArea)
 		// where the users write a new comment.
+		final WatermarkedTextArea newCommentTextArea = new WatermarkedTextArea();
 		newCommentTextArea.setWidth("95%");
 		newCommentTextArea.setWatermark("Write a new comment (Max 300 characters)");
 		newCommentTextArea.setCharLimit(300); //for firefox
@@ -159,20 +123,15 @@ public class ContentPanel extends FlexTable {
 		        	if (newCommentTextArea.isWithinLimit()) {
 		        		String s = newCommentTextArea.getText();
 				    	newCommentTextArea.setText("");
-		        		async.storeComment(s, selectedPost.getId(), new AsyncCallback<Long>() {
+		        		async.storeComment(s, selectedPost.getId(), new AsyncCallback<Void>() {
 						    @Override
 						    public void onFailure(Throwable caught) {
 						        Window.alert("newPost().storePost failed \n" + caught);
 						    }
 						    @Override
-						    public void onSuccess(Long result) {
-						    	if (result == null) {
-						    		Window.alert("newPost().storePost failed \n result is null.");
-						    	} else {
-						    		newCommentTextArea.setText("");
-						    		selectedPost.setId(result);
-						    		showComments(result);
-						    	}
+						    public void onSuccess(Void result) {
+					    		newCommentTextArea.setText("");
+						    	showComments(selectedPost.getId());
 						    }
 						});
 		        	} else {
@@ -224,10 +183,9 @@ public class ContentPanel extends FlexTable {
 	}
 	
 	/**
-	 * Get all the posts
+	 * Initialize the ContentPanel by getting all the posts
 	 */
 	public void init() {
-		
 		async.getAllPosts(new AsyncCallback<ArrayList<Post>>() {
 			@Override
 			public void onFailure(Throwable caught) {
@@ -240,13 +198,16 @@ public class ContentPanel extends FlexTable {
 		});
 	}
 	
+	/***************************************************************************************
+	*									Post functions
+	***************************************************************************************/
+	
 	/**
 	 * Get all the posts to match the filter
 	 * @param filterBy which member to filter by
 	 * @param filter list of strings to filter with
 	 */
-	public void showPostList(String filterBy, final ArrayList<String> filter) {
-		
+	public void showPostList(String filterBy, final ArrayList<String> filter) {		
 		async.fetchPosts(filterBy, filter,
             new AsyncCallback<ArrayList<Post>>() {
 		        @Override
@@ -256,7 +217,7 @@ public class ContentPanel extends FlexTable {
 		        }
 				@Override
 		        public void onSuccess(ArrayList<Post> result) {
-					// if we use multiple filters in the datastore query
+					// If we use multiple filters in the datastore query
 					// each filter will create it's own query and afterwards
 					// the results from these queries will need to be sorted.
 					if (filter.size() > 1) {
@@ -277,7 +238,22 @@ public class ContentPanel extends FlexTable {
 		this.postList = postList;
         postsTable.removeAllRows();
 		if (!postList.isEmpty()) {
-	        async.getCurrentMyUser(checkUserCallback);
+	        async.getCurrentMyUser(new AsyncCallback<MyUser>() {
+	    		@Override
+	    		public void onFailure(Throwable caught) {
+	    			Window.alert("updatePostList.getCurrentMyUser failed \n" + caught);
+	    		}
+	    		@Override
+	    		public void onSuccess(MyUser result) {
+	    			if (result != null) {
+	    		    	// userIsAdmin and currentUser is used when checking whether 
+	    		    	// to display the remove and edit buttons
+	    				userIsAdmin = result.isAdministrator();
+	    				currentUser = result;
+	    			}
+	    		}
+	        });
+	        
 	        //loop the array list and post getters to add 
 	        //records to the table
 			int row = 0;
@@ -313,10 +289,21 @@ public class ContentPanel extends FlexTable {
 			}
 		});
 		
-		postItem.setHeader(makePostHeaderItem(post));
-		postItem.setContent(makePostContentItem(post));
+		postItem.setHeader(postHeader(post));
+		postItem.setContent(postContent(post));
 		
 		return postItem;
+	}
+	
+	/** 
+	 * Loop through all postItems and compress where needed.
+	 */
+	private void compressNonSelectedPostItems() {		
+		for (int row = 0; row < postList.size(); row++) {
+			// Compress all except for selected post, else don't.
+        	if ((row != selectedPostNr) && postsTable.isCellPresent(row, 0))
+        		((DisclosurePanel) postsTable.getWidget(row, 0)).setOpen(false);
+        }
 	}
 	
 	/** 
@@ -325,11 +312,11 @@ public class ContentPanel extends FlexTable {
 	 * @param post the current post from which we get the info
 	 * @return the headerItem
 	 */
-	private FlexTable makePostHeaderItem(Post post) {
+	private FlexTable postHeader(Post post) {
 		
-		FlexTable headerItem = new FlexTable();
-		headerItem.getColumnFormatter().setWidth(1, "25%");
-		headerItem.getColumnFormatter().setWidth(2, "75%");
+		FlexTable postHeaderTable = new FlexTable();
+		postHeaderTable.getColumnFormatter().setWidth(1, "25%");
+		postHeaderTable.getColumnFormatter().setWidth(2, "75%");
 				
 		Label titleLabel = new Label(post.getTitle());
 		titleLabel.setStyleName("postTitle");
@@ -345,12 +332,25 @@ public class ContentPanel extends FlexTable {
 			thumbnail = new Image(post.getThumbnail());
 			thumbnail.setSize("34px", "34px");
 		}
-		headerItem.setWidget(0, 0, thumbnail);
-		headerItem.setWidget(0, 1, titleLabel);
-		headerItem.setWidget(0, 2, descriptionLabel);
-		headerItem.setWidth("100%");
+		postHeaderTable.setWidget(0, 0, thumbnail);
+		postHeaderTable.setWidget(0, 1, titleLabel);
+		postHeaderTable.setWidget(0, 2, descriptionLabel);
+		postHeaderTable.setWidth("100%");
 		
-		return headerItem;
+		return postHeaderTable;
+	}
+	
+	/**
+	 * Parse the mapped default type images to find the
+	 * one matching type.
+	 * @param type the selected type
+	 * @return the image url
+	 */
+	private String getDefaultTypeImageUrl(String type) {
+		if (defaultTypeImageUrls.containsKey(type))
+		    return defaultTypeImageUrls.get(type);
+		else 
+			return defaultTypeImageUrls.get("error");
 	}
 	
 	/**
@@ -359,9 +359,9 @@ public class ContentPanel extends FlexTable {
 	 * @param post the current post from which we get the info
 	 * @return the contentItem
 	 */
-	private FlexTable makePostContentItem(final Post post) {
+	private FlexTable postContent(final Post post) {
 
-		FlexTable contentItem = new FlexTable();
+		FlexTable postContentTable = new FlexTable();
 		// A small panel containing the remove and the flag buttons.
 		VerticalPanel postButtonPanel = new VerticalPanel();		
 		postButtonPanel.setWidth("16px");
@@ -373,32 +373,32 @@ public class ContentPanel extends FlexTable {
 		updateLabel.setStyleName("postSmall");
 		dateLabel.setStyleName("postSmall");
 		
-		contentItem.getCellFormatter().setAlignment(0, 3,
+		postContentTable.getCellFormatter().setAlignment(0, 3,
 				HasHorizontalAlignment.ALIGN_RIGHT,
 				HasVerticalAlignment.ALIGN_TOP);
-		contentItem.getColumnFormatter().setWidth(2, "80%");
-		contentItem.getColumnFormatter().setWidth(3, "20%");
+		postContentTable.getColumnFormatter().setWidth(2, "80%");
+		postContentTable.getColumnFormatter().setWidth(3, "20%");
 		
-		contentItem.setWidget(0, 3, fixSubscribeLabel(post.getAuthor()));
+		postContentTable.setWidget(0, 3, makeSubscribeLabel(post.getAuthor()));
 
 		// if its a video, parse the string for the videoId 
 		// and add a embedded YouTube player for that video
 		if (post.getType().equals("video"))
-			contentItem.setWidget(0, 2, fixVideo(post));
+			postContentTable.setWidget(0, 2, makeEmbeddedVideoPlayer(post));
 		
 		// if its a picture add it to the postItem
 		else if (post.getType().equals("picture"))
-			contentItem.setWidget(0, 2, fixPicture(post));
+			postContentTable.setWidget(0, 2, makeEmbeddedPicture(post));
 		
 		// else just add the text to the postItem
 		else
-			contentItem.setText(0, 2, post.getText());
+			postContentTable.setText(0, 2, post.getText());
 		
-		contentItem.setWidget(1, 2, updateLabel);		
-		contentItem.getCellFormatter().setAlignment(1, 3, 
+		postContentTable.setWidget(1, 2, updateLabel);		
+		postContentTable.getCellFormatter().setAlignment(1, 3, 
 				HasHorizontalAlignment.ALIGN_RIGHT,
 				HasVerticalAlignment.ALIGN_BOTTOM);
-		contentItem.setWidget(1, 3, dateLabel);
+		postContentTable.setWidget(1, 3, dateLabel);
 		
 		// Add the flag post button for all users, 
 		// even if you are not logged in.
@@ -408,155 +408,28 @@ public class ContentPanel extends FlexTable {
         if (userIsAdmin)
         	postButtonPanel.add(makeRemovePostButton(post.getId()));
 
-    	contentItem.getCellFormatter().setAlignment(0, 4, 
+    	postContentTable.getCellFormatter().setAlignment(0, 4, 
 				HasHorizontalAlignment.ALIGN_RIGHT,
 				HasVerticalAlignment.ALIGN_TOP);
-    	contentItem.setWidget(0, 4, postButtonPanel);
+    	postContentTable.setWidget(0, 4, postButtonPanel);
     	
 		// if the current user is the author of the selected post or if he
         // is a admin, show the update button
         if ((currentUser != null) && 
         	(currentUser.getEmail().equals(post.getAuthor()) || userIsAdmin)) {
-        	contentItem.getCellFormatter().setAlignment(1, 4, 
+        	postContentTable.getCellFormatter().setAlignment(1, 4, 
     				HasHorizontalAlignment.ALIGN_RIGHT,
     				HasVerticalAlignment.ALIGN_BOTTOM);    		
-        	contentItem.setWidget(1, 4, makeUpdatePostButton(post));
+        	postContentTable.setWidget(1, 4, makeUpdatePostButton(post));
         }
-        contentItem.setWidth("100%");
+        postContentTable.setWidth("100%");
         
-        return contentItem;
-	}
-
-	/**
-	 * Checks if the email is in the subscription list of the current user
-	 * @param email of the user to subscribe/unsubscribe to
-	 * @return is the email in the subscription list?
-	 */
-	protected boolean subscribedTo(String email) {
-		return currentUser.getSubscriptionList().contains(email);
-	}
-
-	/**
-	 * Create a image for a post with the type "picture".
-	 * @param post used to get the url for the picture
-	 * @return the image widget
-	 */
-	private Image fixPicture(final Post post) {
-		final Image img = new Image(post.getText());
-		if (img.getHeight() != 0) {
-			final int w = img.getWidth();
-			// AspectRatio is used to keep the same ratio between
-			// height and width when scaling
-			final float aspectRatio = (float) w / (float) img.getHeight();
-			// When the image is loaded scale it to match the layout
-			img.addLoadHandler(new LoadHandler() {
-				@Override
-				public void onLoad(LoadEvent event) {
-					img.setWidth("427px");
-					if (w > 427)
-						img.setHeight((int) (427/aspectRatio) + "px");
-					else if (w <= 427)
-						img.setHeight((int) (427*aspectRatio) + "px");
-				}
-			});
-		}
-		// When the image is clicked open a new tab with
-		// the picture url.
-		img.addClickHandler(new ClickHandler() {				
-			@Override
-			public void onClick(ClickEvent event) {
-				Window.open(post.getText(), post.getTitle(), "");
-			}
-		});
-		return img;
+        return postContentTable;
 	}
 	
-	/**
-	 * Create a embedded youtube player
-	 * @param post used to parse the string for the videoId
-	 * @return the youtube player widget
-	 */
-	private YouTubeEmbeddedPlayer fixVideo(Post post) {
-		String videoId = null;
-		// Split the string when it finds "v=" because
-		// after that comes the videoId.
-		String[] split = post.getText().split("v=");
-		if (split.length >= 2)
-			videoId = split[1];
-		youTubePlayer = new YouTubeEmbeddedPlayer(videoId);
-		youTubePlayer.setSize("427px", "320px");
-		youTubePlayer.embed();
-		youTubePlayer.setFullScreen(true);
-		
-		return youTubePlayer;
-	}
-	
-	/**
-	 * Create a label displaying the author of the post
-	 * that when clicked adds or removes that author from
-	 * the current users subscription list.
-	 * @param author of the post
-	 * @return the label
-	 */
-	private Label fixSubscribeLabel(final String author) {
-		final PopupPanel subPopup = new PopupPanel();
-		subPopup.setAutoHideEnabled(true);
-		final Label authorLabel = new Label("by: " + author);
-		
-		// Unsubscribe/subscribe button
-		authorLabel.addClickHandler(new ClickHandler() {			
-			@Override
-			public void onClick(ClickEvent event) {
-				boolean isSubscribed;
-				try {
-					isSubscribed = !subscribedTo(author);
-				} catch (NullPointerException e) {
-					// The user is not logged in don't do anything.
-					return;
-				}
-				if (isSubscribed) {
-					// Subscribe if the user isn't subscribed to this yet
-					async.subscribe(author, new AsyncCallback<Void>() {
-						@Override
-						public void onFailure(Throwable caught) {
-							Window.alert("makePostContentItem.subscribe failed \n" + caught);
-						}
-						@Override
-						public void onSuccess(Void result) {
-							subPopup.setWidget(new Label("You are now subscribed to " + author));
-							subPopup.showRelativeTo(authorLabel);
-						}
-					});
-				} else {
-					// Unsubscribe if the user is subscribed to this
-					async.unsubscribe(author, new AsyncCallback<Void>() {
-						@Override
-						public void onFailure(Throwable caught) {
-							Window.alert("makePostContentItem.unSubscribe failed \n" + caught);
-						}
-						@Override
-						public void onSuccess(Void result) {
-							subPopup.setWidget(new Label("You are no longer subscribed to " + author));
-							subPopup.showRelativeTo(authorLabel);
-						}
-					});
-				}
-			}
-		});
-		authorLabel.setStyleName("postSmall");
-		return authorLabel;
-	}
-	
-	/** 
-	 * Loop through all postItems and compress where needed.
-	 */
-	private void compressNonSelectedPostItems() {		
-		for (int row = 0; row < postList.size(); row++) {
-			// Compress all except for selected post, else don't.
-        	if ((row != selectedPostNr) && postsTable.isCellPresent(row, 0))
-        		((DisclosurePanel) postsTable.getWidget(row, 0)).setOpen(false);
-        }
-	}
+	/***************************************************************************************
+	*									Comment functions
+	***************************************************************************************/
 	
 	/**
 	 * Get all the comments for a post.
@@ -574,6 +447,7 @@ public class ContentPanel extends FlexTable {
 			}
 		});
 	}
+	
 	/**
 	 * Update the commentsTable to refresh the displayed comments.
 	 * @param commentList the updated list containing the comments to display
@@ -641,10 +515,14 @@ public class ContentPanel extends FlexTable {
 		return commentItem;
 	}
 	
+	/***************************************************************************************
+	*										PostDialogs
+	***************************************************************************************/
+	
 	/**
-	 * Shows the dialog for making a new post.
+	 * Creates the dialog for making a new post.
 	 */
-	public void newPostDialog() {
+	public void newPostDialog() {		
 		// If there is any posts in the postsTable, compress the selected
 		// one while the newpost dialog is up.
 		try {
@@ -652,48 +530,172 @@ public class ContentPanel extends FlexTable {
 		} catch (IndexOutOfBoundsException e) {
 			// There are no posts
 		}
+		
+		final NewPostDialog newPostDialog = new NewPostDialog();
+		newPostDialog.addCloseHandler(new CloseHandler<PopupPanel>() {
+			@Override
+			public void onClose(CloseEvent<PopupPanel> event) {
+				// If a new post was stored
+				if (newPostDialog.getNewPostId() != null) {
+					// Adds a temporary post to skip another servercall
+					Post p = newPostDialog.getTextBoxValues();
+					p.setId(newPostDialog.getNewPostId());
+					
+					String author;
+					if (currentUser == null)
+						author = "Anonymous";
+					else 
+						author = currentUser.getEmail();
+					
+					p.setAuthor(author);
+					p.setDate(new Date());
+					postList.add(0, p);
+					updatePostList(postList);
+				} else {
+					((DisclosurePanel) postsTable.getWidget(selectedPostNr, 0)).setOpen(true);
+				}
+			}
+		});		
 		newPostDialog.center();
 	}
 
 	/**
-	 * Shows the dialog for editing a post.
+	 * Creates the dialog for editing a post.
 	 * @param post is needed to determine old values
 	 */
 	private void editPostDialog(Post post) {
-		// If there is any posts in the postsTable, compress the selected
-		// one while the editpost dialog is up.
-		try {
-			((DisclosurePanel) postsTable.getWidget(selectedPostNr, 0)).setOpen(false);
-		} catch (IndexOutOfBoundsException e) {
-			// There are no posts
-		}
+		// Compress the selected post while the editpost dialog is up.		
+		((DisclosurePanel) postsTable.getWidget(selectedPostNr, 0)).setOpen(false);
 		
 		String author;
 		if (currentUser == null)
 			author = "Anonymous";
 		else 
 			author = currentUser.getEmail();
-		editPostDialog = new EditPostDialog(post, author, currentUser.isAdministrator());
-		editPostDialog.center();
+		
+		EditPostDialog editPostDialog = new EditPostDialog(post, author, currentUser.isAdministrator());
 		editPostDialog.addCloseHandler(new CloseHandler<PopupPanel>() {
 			@Override
 			public void onClose(CloseEvent<PopupPanel> event) {
 				init();
 			}
 		});
+		editPostDialog.center();
+	}
+		
+	/***************************************************************************************
+	*										Makers 
+	*			(functions for constructing smaller parts of the ContentPanel)
+	***************************************************************************************/
+	
+	/**
+	 * Create a image for a post with the type "picture".
+	 * @param post used to get the url for the picture
+	 * @return the image widget
+	 */
+	private Image makeEmbeddedPicture(final Post post) {
+		final Image img = new Image(post.getText());
+		if (img.getHeight() != 0) {
+			final int w = img.getWidth();
+			// AspectRatio is used to keep the same ratio between
+			// height and width when scaling
+			final float aspectRatio = (float) w / (float) img.getHeight();
+			// When the image is loaded scale it to match the layout
+			img.addLoadHandler(new LoadHandler() {
+				@Override
+				public void onLoad(LoadEvent event) {
+					img.setWidth("427px");
+					if (w > 427)
+						img.setHeight((int) (427/aspectRatio) + "px");
+					else if (w <= 427)
+						img.setHeight((int) (427*aspectRatio) + "px");
+				}
+			});
+		}
+		// When the image is clicked open a new tab with
+		// the picture url.
+		img.addClickHandler(new ClickHandler() {				
+			@Override
+			public void onClick(ClickEvent event) {
+				Window.open(post.getText(), post.getTitle(), "");
+			}
+		});
+		return img;
 	}
 	
 	/**
-	 * Parse the mapped default type images to find the
-	 * one matching type.
-	 * @param type the selected type
-	 * @return the image url
+	 * Create a embedded youtube player
+	 * @param post used to parse the string for the videoId
+	 * @return the youtube player widget
 	 */
-	private String getDefaultTypeImageUrl(String type) {
-		if (defaultTypeImageUrls.containsKey(type))
-		    return defaultTypeImageUrls.get(type);
-		else 
-			return defaultTypeImageUrls.get("error");
+	private YouTubeEmbeddedPlayer makeEmbeddedVideoPlayer(Post post) {
+		String videoId = null;
+		// Split the string when it finds "v=" because
+		// after that comes the videoId.
+		String[] split = post.getText().split("v=");
+		if (split.length >= 2)
+			videoId = split[1];
+		YouTubeEmbeddedPlayer youTubePlayer = new YouTubeEmbeddedPlayer(videoId);
+		youTubePlayer.setSize("427px", "320px");
+		youTubePlayer.embed();
+		youTubePlayer.setFullScreen(true);
+		
+		return youTubePlayer;
+	}
+	
+	/**
+	 * Create a label displaying the author of the post
+	 * that when clicked adds or removes that author from
+	 * the current users subscription list.
+	 * @param author of the post
+	 * @return the label
+	 */
+	private Label makeSubscribeLabel(final String author) {
+		final PopupPanel subPopup = new PopupPanel();
+		subPopup.setAutoHideEnabled(true);
+		final Label authorLabel = new Label("by: " + author);
+		
+		// Unsubscribe/subscribe button
+		authorLabel.addClickHandler(new ClickHandler() {			
+			@Override
+			public void onClick(ClickEvent event) {
+				boolean isSubscribed;
+				try {
+					isSubscribed = !currentUser.getSubscriptionList().contains(author);
+				} catch (NullPointerException e) {
+					return; // The user is not logged in don't do anything.
+				}
+				if (isSubscribed) {
+					// Subscribe if the user isn't subscribed to this yet
+					async.subscribe(author, new AsyncCallback<Void>() {
+						@Override
+						public void onFailure(Throwable caught) {
+							Window.alert("makeSubscribeLabel.subscribe failed \n" + caught);
+						}
+						@Override
+						public void onSuccess(Void result) {
+							subPopup.setWidget(new Label("You are now subscribed to " + author));
+							subPopup.showRelativeTo(authorLabel);
+						}
+					});
+				} else {
+					// Unsubscribe if the user is subscribed to this
+					async.unsubscribe(author, new AsyncCallback<Void>() {
+						@Override
+						public void onFailure(Throwable caught) {
+							Window.alert("makeSubscribeLabel.unSubscribe failed \n" + caught);
+						}
+						@Override
+						public void onSuccess(Void result) {
+							subPopup.setWidget(new Label("You are no longer subscribed to " + author));
+							subPopup.showRelativeTo(authorLabel);
+						}
+					});
+				}
+			}
+		});
+		authorLabel.setStyleName("postSmall");
+		return authorLabel;
 	}
 
 	/**
@@ -744,7 +746,7 @@ public class ContentPanel extends FlexTable {
 	 * @param post needed for the call to {@link EditPostDialog}
 	 * @return the update button
 	 */
-	private Button makeUpdatePostButton(final Post post) {		
+	private Button makeUpdatePostButton(final Post post) {
 		Button b = new Button();
 		b.setSize("16px", "16px");
 		b.setStyleName("editButton");
@@ -770,7 +772,7 @@ public class ContentPanel extends FlexTable {
 	 * @param postId needed for the call to deletePost
 	 * @return the remove button
 	 */
-	private Button makeRemovePostButton(final Long postId) {		
+	private Button makeRemovePostButton(final Long postId) {
 		Button b = new Button();
 		b.setSize("16px", "16px");
 		b.setStyleName("removeButton");
@@ -779,17 +781,16 @@ public class ContentPanel extends FlexTable {
 			public void onClick(ClickEvent event) {
 				// Check if the post is temporary
 				if (postId != null) {
-					async.deletePost(postId, 
-							new AsyncCallback<Void>() {
-								@Override
-								public void onFailure(Throwable caught) {
-									Window.alert("PostsPanel.makeRemoveButton.deletePost failed \n" + caught);
-								}
-								@Override
-								public void onSuccess(Void result) {
-									init();
-								}
-							});
+					async.deletePost(postId, new AsyncCallback<Void>() {
+						@Override
+						public void onFailure(Throwable caught) {
+							Window.alert("PostsPanel.makeRemoveButton.deletePost failed \n" + caught);
+						}
+						@Override
+						public void onSuccess(Void result) {
+							init();
+						}
+					});
 				} else {
 					// The post is just temporary
 					Window.alert("Trying to remove a post before it was " +
@@ -851,15 +852,14 @@ public class ContentPanel extends FlexTable {
 				else 
 					flagger = currentUser.getEmail();
 				
-				async.flagComment(commentId, flagger, 
-						new AsyncCallback<Void>() {
-							@Override
-							public void onFailure(Throwable caught) {
-								Window.alert("makeFlagCommentButton.flagComment failed \n" + caught);
-							}
-							@Override
-							public void onSuccess(Void result) {}
-						});
+				async.flagComment(commentId, flagger, new AsyncCallback<Void>() {
+					@Override
+					public void onFailure(Throwable caught) {
+						Window.alert("makeFlagCommentButton.flagComment failed \n" + caught);
+					}
+					@Override
+					public void onSuccess(Void result) {}
+				});
 			}
 		});
 		return b;
