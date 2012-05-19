@@ -81,17 +81,16 @@ public class EditPostDialog extends NewPostDialog {
 					p.setAuthor(oldAuthor);
 					fixUpdateSection(p, currentUser);
 					p.setDate(oldDate);
-					async.editPost(oldId, p,
-							new AsyncCallback<Long>() {
-								@Override
-								public void onFailure(Throwable caught) {
-									Window.alert("PostsPanel.editPost failed \n" + caught);
-								}
-								@Override
-								public void onSuccess(Long result) {
-									hide();
-								}
-							});
+					async.editPost(oldId, p, new AsyncCallback<Void>() {
+						@Override
+						public void onFailure(Throwable caught) {
+							Window.alert("PostsPanel.editPost failed \n" + caught);
+						}
+						@Override
+						public void onSuccess(Void result) {
+							hide();
+						}
+					});
 				} else {
 					Window.alert("Too long text (Max 600 characters) or \n" +
 							"description (Max 100 characters). \n " +

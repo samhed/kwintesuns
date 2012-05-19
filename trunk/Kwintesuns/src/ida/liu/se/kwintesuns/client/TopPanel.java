@@ -167,7 +167,8 @@ public class TopPanel extends VerticalPanel {
 	// since the subscription list is already an ArrayList. 
 	private final Command showSubscribe = new Command() {
 		@Override 
-		public void execute() {async.getCurrentMyUser(new AsyncCallback<MyUser>() {
+		public void execute() {
+			async.getCurrentMyUser(new AsyncCallback<MyUser>() {
 				@Override
 				public void onFailure(Throwable caught) {
 					Window.alert("showSubscribe.getCurrentMyUser failed \n" + caught);

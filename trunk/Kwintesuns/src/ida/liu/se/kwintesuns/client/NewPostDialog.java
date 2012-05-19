@@ -152,7 +152,7 @@ public class NewPostDialog extends DialogBox {
 	/**
 	 * Places the fields and boxes into the dialogPanel.
 	 */
-	public void fixLayout() {		
+	public void fixLayout() {
 		dialogPanel.setSize("600px", "500px");
 		dialogPanel.setStyleName("dialogPanel");
 		dialogPanel.add(titleLabel, 15, 10);

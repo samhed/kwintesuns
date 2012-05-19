@@ -11,12 +11,12 @@ public interface ServerServiceAsync {
 
 	void storePost(Post post, AsyncCallback<Long> asyncCallback);
 	void deletePost(Long postId, AsyncCallback<Void> asyncCallback); 
-	void editPost(Long postId, Post updatedPost, AsyncCallback<Long> asyncCallback);
+	void editPost(Long postId, Post updatedPost, AsyncCallback<Void> asyncCallback);
 	void flagPost(Long postId, String flagger, AsyncCallback<Void> asyncCallback);
 	void getAllPosts(AsyncCallback<ArrayList<Post>> asyncCallback); 
 	void fetchPosts(String filterBy, ArrayList<String> filter, AsyncCallback<ArrayList<Post>> asyncCallback);
 	
-	void storeComment(String text, Long postId, AsyncCallback<Long> asyncCallback);
+	void storeComment(String text, Long postId, AsyncCallback<Void> asyncCallback);
 	void deleteComment(Long commentId, AsyncCallback<Void> asyncCallback);
 	void getComments(Long postId, AsyncCallback<ArrayList<Comment>> asyncCallback);
 	void flagComment(Long commentId, String flagger, AsyncCallback<Void> asyncCallback);
