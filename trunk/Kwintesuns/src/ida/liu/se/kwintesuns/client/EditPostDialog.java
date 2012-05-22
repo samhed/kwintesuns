@@ -1,5 +1,6 @@
 package ida.liu.se.kwintesuns.client;
 
+import java.util.ArrayList;
 import java.util.Date;
 
 import com.google.gwt.core.client.GWT;
@@ -26,6 +27,7 @@ public class EditPostDialog extends NewPostDialog {
 	private String oldPicture;
 	private String oldText;
 	private String oldUpdate;
+	private ArrayList<String> oldFlagList;
 	private Date oldDate;
 	private Long oldId;
 	
@@ -79,8 +81,9 @@ public class EditPostDialog extends NewPostDialog {
 				if (newPostFormIsOK()) {
 					Post p = getTextBoxValues();
 					p.setAuthor(oldAuthor);
-					fixUpdateSection(p, currentUser);
 					p.setDate(oldDate);
+					p.setFlagList(oldFlagList);
+					fixUpdateSection(p, currentUser);
 					async.editPost(oldId, p, new AsyncCallback<Void>() {
 						@Override
 						public void onFailure(Throwable caught) {
@@ -133,6 +136,7 @@ public class EditPostDialog extends NewPostDialog {
 		oldPicture = post.getThumbnail();
 		oldText = post.getText();
 		oldUpdate = post.getUpdate();
+		oldFlagList = post.getFlagList();
 		oldDate = post.getDate();
 		oldId = post.getId();
 	}

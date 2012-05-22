@@ -206,9 +206,23 @@ public class NewPostDialog extends DialogBox {
 				&& !textBox.isEmpty();
 	}
 	
+	/**
+	 * Sets the selected index of the typeBox and
+	 * displays the correct label over the textArea.
+	 * @param i the index of the selected type
+	 */
+	public void setTypeBoxSelected(int i) {
+		typeBox.setSelectedIndex(i); 
+		if (i == 0)
+			textLabel.setText("Video url:");
+		else if (i == 1)
+			textLabel.setText("Picture url:");
+		else if ((i == 2) || (i == 3))
+			textLabel.setText("Text (Max 600 characters):");
+	}
+	
 	// Setters and getters for the fields and boxes:
 	
-	public void setTypeBoxSelected(int i) {typeBox.setSelectedIndex(i);}	
 	public void setTitleText(String s) {titleBox.setText(s);}	
 	public void setDescriptionText(String s) {descriptionBox.setText(s);}	
 	public void setPictureText(String s) {pictureBox.setText(s);}

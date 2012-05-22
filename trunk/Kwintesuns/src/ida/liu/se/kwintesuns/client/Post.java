@@ -38,6 +38,7 @@ import com.google.gwt.user.client.rpc.IsSerializable;
 	
 	// Should only be called from the serverside:
 	public void addToFlagList(String flagger) {this.flagList.add(flagger);}
+	public void setFlagList(ArrayList<String> flagList) {this.flagList = flagList;}
 	public void setDate(Date date) {this.date = date;}
 	public void setAuthor(String author) {this.author = author;}
 	public void setUpdate(String update) {this.update = update;}
