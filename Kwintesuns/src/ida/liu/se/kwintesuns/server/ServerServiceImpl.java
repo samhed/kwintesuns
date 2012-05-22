@@ -307,6 +307,7 @@ ServerService {
 				oldPost.getThumbnail(), oldPost.getText());
     	updatedPost.setDate(new Date());
     	updatedPost.setAuthor(oldPost.getAuthor());
+    	updatedPost.setFlagList(oldPost.getFlagList());
     	try {
     		editPost(postId, updatedPost);
     	} catch (NotFoundException e) {
