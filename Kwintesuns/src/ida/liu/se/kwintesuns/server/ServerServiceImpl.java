@@ -205,18 +205,18 @@ ServerService {
 	 * @param postId the id of the post that will get flagged.
 	 * @param flagger the email of the user who is flagging this post.
 	 */
-	public void flagPost(Long postId, String flagger) {
+	public boolean flagPost(Long postId, String flagger) {
 		Post p;
 		// Get the post.
 		try {
 			p = ofy.get(Post.class, postId);
 		} catch (NotFoundException e) {			
-			return; // Don't continue if the post wasn't found
+			return false; // Don't continue if the post wasn't found
 		}
 		
 		// Check if this user can flag the post.
 		if (p.getFlagList().contains(flagger))
-			return; // The user already flagged this post
+			return false; // The user already flagged this post
 		else
 			p.addToFlagList(flagger);
 
@@ -226,6 +226,7 @@ ServerService {
 			deletePost(p.getId());	
 		else
 			ofy.put(p);
+		return true;
 	}
 
 	/**
@@ -399,17 +400,17 @@ ServerService {
 	 * @param commentId the id of the comment to be flagged
 	 * @param flagger the email of the user who is flagging this comment
 	 */
-	public void flagComment(Long commentId, String flagger) {
+	public boolean flagComment(Long commentId, String flagger) {
 		Comment c;
 		// Get the comment.
 		try {
 			c = ofy.get(Comment.class, commentId);
 		} catch (NotFoundException e) {
-			return; // Don't continue if the comment wasn't found
+			return false; // Don't continue if the comment wasn't found
 		}
 		
 		if (c.getFlagList().contains(flagger))
-			return; // The user already flagged this comment
+			return false; // The user already flagged this comment
 		else
 			c.addToFlagList(flagger);
 
@@ -419,5 +420,6 @@ ServerService {
 			deleteComment(c.getId());
 		else
 			ofy.put(c);
+		return true;
 	}
 }

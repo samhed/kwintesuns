@@ -706,10 +706,13 @@ public class ContentPanel extends FlexTable {
 	 * @return the flag post button
 	 */
 	private Button makeFlagPostButton(final Long postId) {
-		Button b = new Button();
-		b.setSize("16px", "16px");
-		b.setStyleName("flagButton");
-		b.addClickHandler(new ClickHandler() {
+		final PopupPanel flagPopup = new PopupPanel();
+		flagPopup.setAutoHideEnabled(true);
+		
+		final Button flagPostButton = new Button();
+		flagPostButton.setSize("16px", "16px");
+		flagPostButton.setStyleName("flagButton");
+		flagPostButton.addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
 				if (postId != null) {
@@ -721,15 +724,20 @@ public class ContentPanel extends FlexTable {
 					else 
 						flagger = currentUser.getEmail();
 					
-					async.flagPost(postId, flagger, 
-							new AsyncCallback<Void>() {
-								@Override
-								public void onFailure(Throwable caught) {
-									Window.alert("makeFlagPostButton.flagPost failed \n" + caught);
-								}
-								@Override
-								public void onSuccess(Void result) {}
-							});
+					async.flagPost(postId, flagger, new AsyncCallback<Boolean>() {
+						@Override
+						public void onFailure(Throwable caught) {
+							Window.alert("makeFlagPostButton.flagPost failed \n" + caught);
+						}
+						@Override
+						public void onSuccess(Boolean result) {
+							if (result)
+								flagPopup.setWidget(new Label("You have now flagged this post as offensive."));
+							else
+								flagPopup.setWidget(new Label("You have already flagged this post."));
+							flagPopup.showRelativeTo(flagPostButton);
+						}
+					});
 				} else {
 					// The post is just temporary
 					Window.alert("Trying to flag a post before it was " +
@@ -738,7 +746,7 @@ public class ContentPanel extends FlexTable {
 				}
 			}
 		});
-		return b;
+		return flagPostButton;
 	}
 	
 	/**
@@ -747,10 +755,10 @@ public class ContentPanel extends FlexTable {
 	 * @return the update button
 	 */
 	private Button makeUpdatePostButton(final Post post) {
-		Button b = new Button();
-		b.setSize("16px", "16px");
-		b.setStyleName("editButton");
-		b.addClickHandler(new ClickHandler() {
+		Button updatePostButton = new Button();
+		updatePostButton.setSize("16px", "16px");
+		updatePostButton.setStyleName("editButton");
+		updatePostButton.addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
 				// Check if the post is temporary
@@ -764,7 +772,7 @@ public class ContentPanel extends FlexTable {
 				}
 			}
 		});
-		return b;
+		return updatePostButton;
 	}
 
 	/**
@@ -773,10 +781,10 @@ public class ContentPanel extends FlexTable {
 	 * @return the remove button
 	 */
 	private Button makeRemovePostButton(final Long postId) {
-		Button b = new Button();
-		b.setSize("16px", "16px");
-		b.setStyleName("removeButton");
-		b.addClickHandler(new ClickHandler() {
+		Button removePostButton = new Button();
+		removePostButton.setSize("16px", "16px");
+		removePostButton.setStyleName("removeButton");
+		removePostButton.addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
 				// Check if the post is temporary
@@ -799,7 +807,7 @@ public class ContentPanel extends FlexTable {
 				}
 			}
 		});
-		return b;
+		return removePostButton;
 	}
 	
 	/**
@@ -808,10 +816,10 @@ public class ContentPanel extends FlexTable {
 	 * @return the remove button
 	 */
 	private Button makeRemoveCommentButton(final Long commentId) {		
-		Button b = new Button();
-		b.setSize("16px", "16px");
-		b.setStyleName("removeCommentButton");
-		b.addClickHandler(new ClickHandler() {			
+		Button removeCommentButton = new Button();
+		removeCommentButton.setSize("16px", "16px");
+		removeCommentButton.setStyleName("removeCommentButton");
+		removeCommentButton.addClickHandler(new ClickHandler() {			
 			@Override
 			public void onClick(ClickEvent event) {
 				async.deleteComment(commentId, 
@@ -827,7 +835,7 @@ public class ContentPanel extends FlexTable {
 						});
 			}
 		});
-		return b;
+		return removeCommentButton;
 	}
 	
 	/**
@@ -838,10 +846,13 @@ public class ContentPanel extends FlexTable {
 	 * @return the flag comment button
 	 */
 	private Button makeFlagCommentButton(final Long commentId) {
-		Button b = new Button();
-		b.setSize("16px", "16px");
-		b.setStyleName("flagCommentButton");
-		b.addClickHandler(new ClickHandler() {
+		final PopupPanel flagPopup = new PopupPanel();
+		flagPopup.setAutoHideEnabled(true);
+		
+		final Button flagCommentButton = new Button();
+		flagCommentButton.setSize("16px", "16px");
+		flagCommentButton.setStyleName("flagCommentButton");
+		flagCommentButton.addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
 				String flagger;
@@ -852,16 +863,22 @@ public class ContentPanel extends FlexTable {
 				else 
 					flagger = currentUser.getEmail();
 				
-				async.flagComment(commentId, flagger, new AsyncCallback<Void>() {
+				async.flagComment(commentId, flagger, new AsyncCallback<Boolean>() {
 					@Override
 					public void onFailure(Throwable caught) {
 						Window.alert("makeFlagCommentButton.flagComment failed \n" + caught);
 					}
 					@Override
-					public void onSuccess(Void result) {}
+					public void onSuccess(Boolean result) {
+						if (result)
+							flagPopup.setWidget(new Label("You have now flagged this comment as offensive."));
+						else
+							flagPopup.setWidget(new Label("You have already flagged this comment."));
+						flagPopup.showRelativeTo(flagCommentButton);
+					}
 				});
 			}
 		});
-		return b;
+		return flagCommentButton;
 	}
 }
