@@ -152,7 +152,7 @@ ServerService {
 					continue;
 				}
 				numberOfPostsToRemove--;
-				if (numberOfPostsToRemove == 0)
+				if (numberOfPostsToRemove <= 0)
 					break;
 			}
 		}
@@ -337,7 +337,7 @@ ServerService {
 			Iterable<com.googlecode.objectify.Key<Comment>> allKeys = q.fetchKeys();
 			Comment c;
 			
-			int numberOfCommentsToRemove = q.count() - POSTLIMIT;
+			int numberOfCommentsToRemove = q.count() - COMMENTLIMIT;
 			// Loop through the query result and remove the first one
 			for (com.googlecode.objectify.Key<Comment> k : allKeys) {
 				try {
@@ -348,7 +348,7 @@ ServerService {
 					continue;
 				}
 				numberOfCommentsToRemove--;
-				if (numberOfCommentsToRemove == 0)
+				if (numberOfCommentsToRemove <= 0)
 					break;
 			}
 		}
