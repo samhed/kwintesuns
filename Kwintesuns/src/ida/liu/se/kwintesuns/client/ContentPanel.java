@@ -184,18 +184,34 @@ public class ContentPanel extends FlexTable {
 	
 	/**
 	 * Initialize the ContentPanel by getting all the posts
+	 * and getting the info about the current user.
 	 */
 	public void init() {
 		async.getAllPosts(new AsyncCallback<ArrayList<Post>>() {
 			@Override
 			public void onFailure(Throwable caught) {
-				Window.alert("PostsPanel.initPosts.getAllPosts failed \n" + caught);
+				Window.alert("ContentPanel.init.getAllPosts failed \n" + caught);
 			}
 			@Override
 			public void onSuccess(ArrayList<Post> result) {
 				updatePostList(result);
 			}
 		});
+        async.getCurrentMyUser(new AsyncCallback<MyUser>() {
+    		@Override
+    		public void onFailure(Throwable caught) {
+    			Window.alert("ContentPanel.init.getCurrentMyUser failed \n" + caught);
+    		}
+    		@Override
+    		public void onSuccess(MyUser result) {
+    			if (result != null) {
+    		    	// userIsAdmin and currentUser is used when checking whether 
+    		    	// to display the remove and edit buttons
+    				userIsAdmin = result.isAdministrator();
+    				currentUser = result;
+    			}
+    		}
+        });
 	}
 	
 	/***************************************************************************************
@@ -237,25 +253,9 @@ public class ContentPanel extends FlexTable {
 		
 		this.postList = postList;
         postsTable.removeAllRows();
-		if (!postList.isEmpty()) {
-	        async.getCurrentMyUser(new AsyncCallback<MyUser>() {
-	    		@Override
-	    		public void onFailure(Throwable caught) {
-	    			Window.alert("updatePostList.getCurrentMyUser failed \n" + caught);
-	    		}
-	    		@Override
-	    		public void onSuccess(MyUser result) {
-	    			if (result != null) {
-	    		    	// userIsAdmin and currentUser is used when checking whether 
-	    		    	// to display the remove and edit buttons
-	    				userIsAdmin = result.isAdministrator();
-	    				currentUser = result;
-	    			}
-	    		}
-	        });
-	        
-	        //loop the array list and post getters to add 
-	        //records to the table
+		if (!postList.isEmpty()) {	        
+	        // Loop through the postList and add a postItem 
+	        // for each post to the postsTable.
 			int row = 0;
 	        for (Post post : postList) {
 	        	row = postsTable.getRowCount();
